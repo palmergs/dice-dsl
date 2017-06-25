@@ -1,5 +1,5 @@
 require "bundler/setup"
-require "dice/dsl"
+require "dice"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

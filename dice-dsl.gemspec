@@ -1,17 +1,17 @@
 # coding: utf-8
 lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "dice/dsl/version"
+require "dice/version"
 
 Gem::Specification.new do |spec|
   spec.name          = "dice-dsl"
-  spec.version       = Dice::Dsl::VERSION
+  spec.version       = Dice::VERSION
   spec.authors       = ["Galen Palmer"]
   spec.email         = ["palmergs@gmail.com"]
 
-  spec.summary       = %q{TODO: Write a short summary, because Rubygems requires one.}
-  spec.description   = %q{TODO: Write a longer description or delete this line.}
-  spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.summary       = %q{A DSL for generating random values from various dice combinations}
+  spec.description   = %q{A DSL for generating random values from various dice combinations}
+  spec.homepage      = "https://github.com/palmergs/dice-dsl"
   spec.license       = "MIT"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
