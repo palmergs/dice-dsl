@@ -14,7 +14,7 @@ module Dice
       number = false
       whitespace = false
       str.each_char do |c|
-        if c =~ /\s\t\n/
+        if c =~ /[\s\t\n]/
           unless whitespace
             tokens << acc.join unless acc.empty?
             acc.clear
@@ -64,18 +64,8 @@ module Dice
           100
         when '%%'
           1000
-        when 'd','D' 
-          Dice::Token::ROLL
-        when '+'
-          Dice::Token::PLUS
-        when '-'
-          Dice::Token::MINUS
-        when '&'
-          Dice::Token::AND
-        when '|'
-          Dice::Token::OR
-        else 
-          raise "Unrecognized token :: #{ str }"
+        else
+          Dice::Token::TOKENS[str] or raise "Unrecognized token '#{ str }'"
         end
       end
     end
