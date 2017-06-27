@@ -8,6 +8,7 @@ RSpec.describe Dice::ModifiedRoll do
     expect(mr.vector.size).to eq(1)
     expect(mr.scalar).to be >= 1
     expect(mr.scalar).to be <= 8
+    expect(mr.to_s).to eq('1d8')
   end
 
   it 'can generate a modified scalar' do
@@ -15,6 +16,7 @@ RSpec.describe Dice::ModifiedRoll do
     expect(mr.vector.size).to eq(2)
     expect(mr.scalar).to be >= 6
     expect(mr.scalar).to be <= 20
+    expect(mr.to_s).to eq('2d8+4')
   end
 
   it 'can generate a modified scalar' do
@@ -22,5 +24,6 @@ RSpec.describe Dice::ModifiedRoll do
     expect(mr.vector.size).to eq(2)
     expect(mr.scalar).to be >= 0
     expect(mr.scalar).to be <= 14
+    expect(mr.to_s).to eq('2d8-2')
   end
 end

@@ -5,8 +5,16 @@ module Dice
     end
 
     def vector
-      n = (count || 1)
+      n = actual_count
       (1..n).map { rand(range) + 1 }
+    end
+
+    def actual_count
+      count || 1
+    end
+
+    def to_s
+      "#{ actual_count }d#{ range }"
     end
   end
 end

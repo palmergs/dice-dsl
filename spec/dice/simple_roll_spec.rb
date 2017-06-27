@@ -8,6 +8,7 @@ RSpec.describe Dice::SimpleRoll do
     expect(sr.vector.size).to eq(1)
     expect(sr.scalar).to be >= 1
     expect(sr.scalar).to be <= 10
+    expect(sr.to_s).to eq('1d10')
   end
 
   it 'can generate a long vector' do
@@ -17,5 +18,6 @@ RSpec.describe Dice::SimpleRoll do
     expect(sr.vector.size).to eq(3)
     expect(sr.scalar).to be >= 3
     expect(sr.scalar).to be <= 18
+    expect(sr.to_s).to eq('3d6')
   end
 end
