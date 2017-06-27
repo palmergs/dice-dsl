@@ -31,4 +31,9 @@ RSpec.describe Dice::Tokenizer do
   it 'can parse lists' do
     expect(tokenizer.tokenize('1d4,2d4')).to eq [1, Dice::Token::ROLL, 4, Dice::Token::COMMA, 2, Dice::Token::ROLL, 4 ]
   end
+
+  it 'can tokenize modifiers' do
+    expect(tokenizer.tokenize('1d3+2')).to eq [1, Dice::Token::ROLL, 3, Dice::Token::PLUS, 2]
+    expect(tokenizer.tokenize('d8 - 2')).to eq [Dice::Token::ROLL, 8, Dice::Token::MINUS, 2]
+  end
 end
