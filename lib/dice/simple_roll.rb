@@ -1,16 +1,12 @@
 module Dice
-  class SimpleRoll
-    attr_accessor :count, :range
-    
+  SimpleRoll = Struct.new(:range, :count) do
     def scalar
       vector.inject(&:+)
     end
 
     def vector
-      actual_count = count || 1
-      (1..actual_count).map do |_|
-        rand(range) + 1  
-      end
+      n = (count || 1)
+      (1..n).map { rand(range) + 1 }
     end
   end
 end
