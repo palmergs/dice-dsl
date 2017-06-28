@@ -1,12 +1,20 @@
 module Dice
   SimpleRoll = Struct.new(:range, :count) do
+    def roll
+      rand(range) + 1
+    end
+
     def scalar
       vector.inject(&:+)
     end
 
     def vector
       n = actual_count
-      (1..n).map { rand(range) + 1 }
+      (1..n).map { roll }
+    end
+
+    def vector_with_range
+      vector.zip([range] * count)      
     end
 
     def actual_count

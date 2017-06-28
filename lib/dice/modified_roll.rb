@@ -8,6 +8,10 @@ module Dice
       roll.vector
     end
 
+    def vector_with_range
+      roll.vector_with_range
+    end
+
     def actual_modifier
       modifier || 0
     end
