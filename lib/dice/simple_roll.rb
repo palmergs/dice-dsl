@@ -1,7 +1,24 @@
 module Dice
   SimpleRoll = Struct.new(:range, :count) do
+
+    def roll_one
+      Dice::Roll.new(rand(range) + 1, range)
+    end
+
+    def roll!
+      @last_roll = actual_count.times.collect { roll_one }
+    end
+
+    def roll?
+      !@last_roll.nil?
+    end
+
     def roll
-      rand(range) + 1
+      @last_roll ||= roll!
+    end
+
+    def to_pair
+      
     end
 
     def scalar
@@ -9,12 +26,13 @@ module Dice
     end
 
     def vector
-      n = actual_count
-      (1..n).map { roll }
+      roll.map(&:value)
     end
 
     def vector_with_range
-      vector.zip([range] * count)      
+      roll.map do |r| 
+        [ r.value, r.range ] 
+      end
     end
 
     def actual_count

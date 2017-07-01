@@ -4,6 +4,8 @@ end
 require 'dice/token'
 require 'dice/tokenizer'
 
+require 'dice/roll'
+
 require 'dice/simple_roll'
 require 'dice/modified_roll'
 require 'dice/modify_each_roll'

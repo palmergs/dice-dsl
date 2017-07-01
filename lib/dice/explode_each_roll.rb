@@ -1,3 +1,4 @@
+require 'pp'
 module Dice
   ExplodeEachRoll = Struct.new(:roll) do
     def scalar
@@ -12,10 +13,13 @@ module Dice
       arr = roll.vector_with_range
       arr.map do |pair|
         if pair[0] == pair[1]
-          tmp = [roll.roll, roll.range]
+          tmp = roll.roll_one.to_a
+#pp pair
+#pp tmp          
           pair[0] += tmp[0]
           while tmp[0] == tmp[1]
-            tmp = [roll.roll, roll.range]
+            tmp = roll.roll_one.to_a
+#pp tmp
             pair[0] += tmp[0]
           end
           pair
