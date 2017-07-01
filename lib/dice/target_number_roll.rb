@@ -21,5 +21,13 @@ module Dice
     def actual_target
       target || 0
     end
+
+    def to_s
+      if invert
+        "#{ roll.to_s }<#{ actual_target }>"
+      else
+        "#{ roll.to_s }[#{ actual_target }]"
+      end
+    end
   end
 end
