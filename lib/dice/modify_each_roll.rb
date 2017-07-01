@@ -11,7 +11,7 @@ module Dice
     def vector_with_range
       arr = roll.vector_with_range
       arr.map do |pair|
-        [ pair[0], pair[1] + actual_modifier ]
+        [ pair[0] + actual_modifier, pair[1] ]
       end
     end
 
