@@ -22,6 +22,19 @@ module Dice
     def to_s
       "#{ roll }!"
     end
+
+    def self.parse scanner
+      roll = Dice::SimpleRoll.parse(scanner)
+      if roll
+        if mods = scanner.scan(Dice::Parser::Token::EXPLODE_ONCE)
+          ExplodingRoll.new(roll, mods[1])
+        else
+          roll
+        end
+      else
+        nil
+      end
+    end
   end
 end
     

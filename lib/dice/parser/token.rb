@@ -1,6 +1,9 @@
 module Dice
   module Parser
     class Token
+
+      INTEGER = 'integer'
+
       ROLL = 'd'
       COMMA = ','
       OR = '|'

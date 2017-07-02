@@ -26,4 +26,12 @@ RSpec.describe Dice::ModifiedRoll do
     expect(mr.scalar).to be <= 14
     expect(mr.to_s).to eq('2d8-2')
   end
+
+  describe '#parse' do
+    it 'can parse a modified roll' do
+      scanner = Dice::Parser::Scanner.new("3d6+2")
+      mr = Dice::ModifiedRoll.parse(scanner)
+      expect(mr.to_s).to eq('3d6+2')
+    end
+  end
 end
