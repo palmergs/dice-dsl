@@ -28,5 +28,18 @@ module Dice
         roll.to_s
       end
     end
+
+    def self.parse scanner
+      roll = Dice::SimpleRoll.parse(scanner)
+      if roll
+        if arr = scanner.scan(Dice::Token::PLUS_EACH, Dice::Token::INTEGER)
+          Dice::ModifyEachRoll.new(roll, arr[1])
+        else
+          roll
+        end
+      else
+        nil
+      end
+    end
   end
 end

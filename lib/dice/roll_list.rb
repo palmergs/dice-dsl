@@ -1,10 +1,12 @@
 module Dice
   class RollList
+    attr_reader :list
+
     def initialize *args
       @list = []
       args.each do |v|
-        if v.is_a?(Array)
-          @list += v
+        if v.is_a?(Dice::RollList)
+          @list += v.list
         else
           @list << v
         end
@@ -29,6 +31,20 @@ module Dice
 
     def to_s
       @list.map(&:to_s).join(', ')
+    end
+
+    def self.parse scanner
+      if scanner.scan(Dice::Token::LEFT_PAREN)
+        list = parse(scanner)
+        raise "Unmatched parenthesis" unless scanner.scan(Dice::Token::RIGHT_PARAM)
+        list
+      elsif vector = Dice::VectorRoll.parse(scanner)
+        if scanner.scan(Dice::Token::COMMA)
+          RollList.new(vector, RollList.parse(scanner))
+        else
+          vector
+        end
+      end
     end
   end
 end

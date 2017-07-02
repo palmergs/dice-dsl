@@ -14,12 +14,9 @@ module Dice
       arr.map do |pair|
         if pair[0] == pair[1]
           tmp = roll.roll_one.to_a
-#pp pair
-#pp tmp          
           pair[0] += tmp[0]
           while tmp[0] == tmp[1]
             tmp = roll.roll_one.to_a
-#pp tmp
             pair[0] += tmp[0]
           end
           pair
@@ -31,6 +28,19 @@ module Dice
 
     def to_s
       "#{ roll }!!"
+    end
+
+    def self.parse scanner
+      roll = Dice::SimpleRoll.parse(scanner)
+      if roll
+        if arr = scanner.scan(Dice::Token::EXPLODE_MANY)
+          Dice::ExplodeEachRoll.new(roll)
+        else
+          roll
+        end
+      else
+        nil
+      end
     end
   end
 end

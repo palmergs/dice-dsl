@@ -43,6 +43,20 @@ RSpec.describe Dice::SimpleRoll do
       expect(sr.to_s).to eq('1d20')
     end
 
+    it 'can parse a simple roll with %' do
+      scanner = Dice::Parser::Scanner.new('d%')
+      sr = Dice::SimpleRoll.parse(scanner)
+      expect(sr.range).to eq(100)
+      expect(sr.to_s).to eq('1d100')
+    end
+
+    it 'can parse a simple roll with %%' do
+      scanner = Dice::Parser::Scanner.new('d%%')
+      sr = Dice::SimpleRoll.parse(scanner)
+      expect(sr.range).to eq(1000)
+      expect(sr.to_s).to eq('1d1000')
+    end
+
     it 'can parse a simple roll with count' do
       scanner = Dice::Parser::Scanner.new('3d8')
       sr = Dice::SimpleRoll.parse(scanner)
