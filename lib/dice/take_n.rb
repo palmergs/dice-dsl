@@ -40,7 +40,7 @@ module Dice
     def to_s
       if count
         case actual_group
-          when Dice::HIGHEST_N
+          when HIGHEST_N
             "#{ roll.to_s }^#{ count }"
           when LOWEST_N
             "#{ roll.to_s }`#{ count }"
@@ -59,7 +59,7 @@ module Dice
         elsif arr = scanner.scan(Dice::Parser::Token::LOWEST_N, Dice::Parser::Token::INTEGER)
           Dice::TakeN.new(vector_roll, arr[1], LOWEST_N)
         elsif arr = scanner.scan(Dice::Parser::Token::MIDDLE_N, Dice::Parser::Token::INTEGER)
-          Dice::TokenN.new(vector_roll, arr[1], MIDDLE_N)
+          Dice::TakeN.new(vector_roll, arr[1], MIDDLE_N)
         end
       else
         nil

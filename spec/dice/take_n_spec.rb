@@ -28,4 +28,33 @@ RSpec.describe Dice::TakeN do
       end
     end
   end
+
+  describe '#parse' do
+    it 'can parse a take n' do
+      scanner = Dice::Parser::Scanner.new("4d6^3")
+      tn = Dice::TakeN.parse(scanner)
+      expect(tn.to_s).to eq('4d6^3')
+      expect(tn.vector.length).to eq(3)
+      expect(tn.scalar).to be >= 3
+      expect(tn.scalar).to be <= 18
+    end
+
+    it 'can parse a take n (lower)' do
+      scanner = Dice::Parser::Scanner.new("4d6`3")
+      tn = Dice::TakeN.parse(scanner)
+      expect(tn.to_s).to eq('4d6`3')
+      expect(tn.vector.length).to eq(3)
+      expect(tn.scalar).to be >= 3
+      expect(tn.scalar).to be <= 18
+    end
+
+    it 'can parse a middle n' do
+      scanner = Dice::Parser::Scanner.new("5d6~3")
+      tn = Dice::TakeN.parse(scanner)
+      expect(tn.to_s).to eq('5d6~3')
+      expect(tn.vector.length).to eq(3)
+      expect(tn.scalar).to be >= 3
+      expect(tn.scalar).to be <= 18
+    end
+  end
 end
