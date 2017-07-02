@@ -2,6 +2,17 @@ require 'spec_helper'
 require 'dice/simple_roll'
 
 RSpec.describe Dice::SimpleRoll do
+
+  it 'persists until rerolls' do
+    sr = Dice::SimpleRoll.new(10, 100)
+    sr.roll!
+    value = sr.scalar
+    expect(value).to eq(sr.scalar)
+
+    sr.roll!
+    expect(value).to_not eq(sr.scalar)
+  end
+
   it 'has a default count of 1' do
     sr = Dice::SimpleRoll.new
     sr.range = 10

@@ -12,9 +12,9 @@ module Dice
       arr = roll.vector_with_range
       return arr unless arr.all? {|pair| pair[0] == pair[1]}
 
-      explodes = [[roll.roll, roll.range]]
+      explodes = [ roll.roll_one.to_a ]
       while explodes.last[0] == explodes.last[1]
-        explodes << [roll.roll, roll.range]
+        explodes << roll.roll_one.to_a
       end
       arr + explodes
     end

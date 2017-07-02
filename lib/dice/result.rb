@@ -1,5 +1,5 @@
 module Dice
-  Roll = Struct.new(:value, :range) do
+  Result = Struct.new(:value, :range) do
     def to_s
       "#{ value } (1d#{ range })"
     end

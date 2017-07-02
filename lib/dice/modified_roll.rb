@@ -1,5 +1,6 @@
 module Dice
   ModifiedRoll = Struct.new(:roll, :modifier) do
+
     def scalar
       roll.scalar + actual_modifier
     end
