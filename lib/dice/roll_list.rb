@@ -1,5 +1,5 @@
 module Dice
-  class ListOfRolls
+  class RollList
     def initialize *args
       @list = []
       args.each do |v|

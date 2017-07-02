@@ -2,10 +2,10 @@ require 'spec_helper'
 require 'pp'
 require 'dice'
 
-RSpec.describe Dice::ListOfRolls do
+RSpec.describe Dice::RollList do
 
   it 'can store multiple rolls' do
-    lor = Dice::ListOfRolls.new
+    lor = Dice::RollList.new
     lor << Dice::SimpleRoll.new(4, 2)
     lor << Dice::SimpleRoll.new(6, 3)
     lor << Dice::SimpleRoll.new(8, 2)
@@ -17,14 +17,14 @@ RSpec.describe Dice::ListOfRolls do
   end
 
   it 'can store multiple advanced rolls' do
-    lor = Dice::ListOfRolls.new
+    lor = Dice::RollList.new
     lor << Dice::ModifyEachRoll.new(Dice::SimpleRoll.new(4, 2), 2)
     lor << Dice::ExplodeEachRoll.new(Dice::SimpleRoll.new(6, 6))
     expect(lor.to_s).to eq("2d4++2, 6d6!!")
   end
 
   it 'can be converted to a target number roll' do
-    lor = Dice::ListOfRolls.new
+    lor = Dice::RollList.new
     lor << Dice::ExplodeEachRoll.new(Dice::SimpleRoll.new(4, 2))
     lor << Dice::ExplodeEachRoll.new(Dice::SimpleRoll.new(6, 2))
     lor << Dice::ExplodeEachRoll.new(Dice::SimpleRoll.new(8, 2))
