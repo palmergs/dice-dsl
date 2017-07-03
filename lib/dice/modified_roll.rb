@@ -2,15 +2,19 @@ module Dice
   ModifiedRoll = Struct.new(:roll, :modifier) do
 
     def scalar
-      roll.scalar + actual_modifier
+      vector.inject(&:+)
     end
 
     def vector
-      roll.vector
+      vector_with_range.map(&:first)
     end
 
     def vector_with_range
-      roll.vector_with_range
+      if modifier
+        roll.vector_with_range << [ modifier, 0 ]
+      else
+        roll.vector_with_range
+      end
     end
 
     def actual_modifier
@@ -28,18 +32,17 @@ module Dice
     end
 
     def self.parse scanner
-      roll = Dice::SimpleRoll.parse(scanner)
+      roll = Dice::SimpleRoll.parse(scanner.mark)
       if roll
         if mods = scanner.scan(Dice::Parser::Token::PLUS, Dice::Parser::Token::INTEGER)
-          ModifiedRoll.new(roll, mods[1])
-        elsif mode = scanner.scan(Dice::Parser::Token::MINUS, Dice::Parser::Token::INTEGER)
-          ModifiedRoll.new(roll, -1 * mods[1])
-        else
-          roll
+          return ModifiedRoll.new(roll, mods[1])
+        elsif mods = scanner.scan(Dice::Parser::Token::MINUS, Dice::Parser::Token::INTEGER)
+          return ModifiedRoll.new(roll, -1 * mods[1])
         end
-      else
-        nil
       end
+
+      scanner.reset
+      nil
     end
   end
 end

@@ -5,7 +5,7 @@ module Dice
     end
 
     def vector
-      vector_with_range.map(&:first)      
+      vector_with_range.map(&:first)
     end
 
     def vector_with_range
@@ -24,16 +24,15 @@ module Dice
     end
 
     def self.parse scanner
-      roll = Dice::SimpleRoll.parse(scanner)
+      roll = Dice::SimpleRoll.parse(scanner.mark)
       if roll
         if mods = scanner.scan(Dice::Parser::Token::EXPLODE_ONCE)
-          ExplodingRoll.new(roll, mods[1])
-        else
-          roll
+          return ExplodingRoll.new(roll)
         end
-      else
-        nil
       end
+
+      scanner.reset
+      nil
     end
   end
 end

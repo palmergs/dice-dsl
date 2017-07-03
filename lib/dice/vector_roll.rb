@@ -3,16 +3,16 @@ module Dice
   # parser for rolls that can be interpreted as a vector
   class VectorRoll
     def self.parse scanner
-      if simple = Dice::SimpleRoll.parse(scanner)
-        simple
+      if modified_each = Dice::ModifyEachRoll.parse(scanner)
+        modified_each
       elsif modified = Dice::ModifiedRoll.parse(scanner)
         modified
-      elsif modified_each = Dice::ModifiedEachRoll.parse(scanner)
-        modified_each
+      elsif exploding_each = Dice::ExplodeEachRoll.parse(scanner)
+        exploding_each
       elsif exploding = Dice::ExplodingRoll.parse(scanner)
         exploding
-      elsif exploding_each = Dice::ExplodingEachRoll.parse(scanner)
-        exploding_each
+      elsif simple = Dice::SimpleRoll.parse(scanner)
+        simple
       else
         nil
       end

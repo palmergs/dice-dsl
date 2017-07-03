@@ -40,4 +40,12 @@ RSpec.describe Dice::RollList do
     expect(tnr.scalar).to be <= 8
     expect(tnr.vector.all? {|n| n == 0 || n == 1 }).to be_truthy
   end
+
+  describe '#parse' do
+    it 'can parse a list of die rolls' do
+      scanner = Dice::Parser::Scanner.new("2d4++1, 3d6++2, d8, 2d10!!, d12!!")
+      list = Dice::RollList.parse(scanner)
+      expect(list.to_s).to eq('2d4++1, 3d6++2, 1d8, 2d10!!, 1d12!!')
+    end
+  end
 end

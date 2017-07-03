@@ -5,8 +5,8 @@ module Dice
     def initialize *args
       @list = []
       args.each do |v|
-        if v.is_a?(Dice::RollList)
-          @list += v.list
+        if v.is_a?(Array)
+          @list += v
         else
           @list << v
         end
@@ -26,7 +26,9 @@ module Dice
     end
 
     def vector_with_range
-      @list.map(&:vector_with_range).inject(&:+)
+      @list.map do |item|
+        item.vector_with_range
+      end.inject(&:+)
     end
 
     def to_s
@@ -34,16 +36,23 @@ module Dice
     end
 
     def self.parse scanner
-      if scanner.scan(Dice::Token::LEFT_PAREN)
+      if scanner.scan(Dice::Parser::Token::LEFT_PAREN)
         list = parse(scanner)
-        raise "Unmatched parenthesis" unless scanner.scan(Dice::Token::RIGHT_PARAM)
+        raise "Unmatched parenthesis" unless scanner.scan(Dice::Parser::Token::RIGHT_PARAM)
         list
-      elsif vector = Dice::VectorRoll.parse(scanner)
-        if scanner.scan(Dice::Token::COMMA)
-          RollList.new(vector, RollList.parse(scanner))
-        else
-          vector
+      elsif roll = Dice::VectorRoll.parse(scanner)
+        items = [ roll ]
+        while scanner.scan(Dice::Parser::Token::COMMA)
+          if roll = Dice::VectorRoll.parse(scanner)
+            pp roll
+            items << roll
+          else
+            break
+          end
         end
+        RollList.new(items)
+      else
+        nil
       end
     end
   end

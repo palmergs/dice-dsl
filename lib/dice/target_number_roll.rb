@@ -5,11 +5,15 @@ module Dice
     end
 
     def vector
-      roll.vector.map do |v|
+      vector_with_range.map(&:first)
+    end
+
+    def vector_with_range
+      roll.vector_with_range.map do |pair|
         if invert
-          v <= actual_target ? 1 : 0
+          pair[0] <= actual_target ? [ 1, 1 ] : [ 0, 1 ]
         else
-          v >= actual_target ? 1 : 0    
+          pair[0] >= actual_target ? [ 1, 1 ] : [ 0, 1 ]
         end
       end
     end

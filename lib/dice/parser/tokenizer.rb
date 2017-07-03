@@ -36,6 +36,12 @@ module Dice
             number = false
             whitespace = false
             tokens << 'd'
+          elsif c =~ /,/
+            tokens << acc.join unless acc.empty?
+            acc.clear
+            number = false
+            whitespace = false
+            tokens << ','
           else
             if number
               tokens << acc.join

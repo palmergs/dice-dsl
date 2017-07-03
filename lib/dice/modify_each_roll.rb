@@ -30,16 +30,15 @@ module Dice
     end
 
     def self.parse scanner
-      roll = Dice::SimpleRoll.parse(scanner)
+      roll = Dice::SimpleRoll.parse(scanner.mark)
       if roll
-        if arr = scanner.scan(Dice::Token::PLUS_EACH, Dice::Token::INTEGER)
-          Dice::ModifyEachRoll.new(roll, arr[1])
-        else
-          roll
+        if arr = scanner.scan(Dice::Parser::Token::PLUS_EACH, Dice::Parser::Token::INTEGER)
+          return Dice::ModifyEachRoll.new(roll, arr[1])
         end
-      else
-        nil
       end
+
+      scanner.reset
+      nil
     end
   end
 end

@@ -5,6 +5,25 @@ class Dice::Parser::Scanner
   def initialize str
     @tokens = Dice::Parser::Tokenizer.new.tokenize(str)
     @index = -1
+    @mark = []
+  end
+
+  def pos
+    @index
+  end
+
+  def pos= n
+    @index = n
+  end
+
+  def mark
+    @mark.push(pos)
+    self
+  end
+
+  def reset
+    self.pos= @mark.pop
+    self
   end
 
   def scan *pattern
