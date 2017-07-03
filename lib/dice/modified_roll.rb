@@ -1,6 +1,10 @@
 module Dice
   ModifiedRoll = Struct.new(:roll, :modifier) do
 
+    def roll!
+      roll.roll!
+    end
+
     def scalar
       vector.inject(&:+)
     end

@@ -7,6 +7,10 @@ module Dice
     LOWEST_N = :lowest
     MIDDLE_N = :middle
 
+    def roll!
+      roll.roll!
+    end
+
     def scalar
       vector.inject(&:+)
     end

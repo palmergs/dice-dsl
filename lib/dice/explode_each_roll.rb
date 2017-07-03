@@ -1,6 +1,11 @@
 require 'pp'
 module Dice
   ExplodeEachRoll = Struct.new(:roll) do
+
+    def roll!
+      roll.roll!
+    end
+
     def scalar
       vector.inject(&:+)
     end

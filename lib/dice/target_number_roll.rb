@@ -1,5 +1,10 @@
 module Dice
   TargetNumberRoll = Struct.new(:roll, :target, :invert) do
+
+    def roll!
+      roll.roll!
+    end
+
     def scalar
       vector.inject(&:+)
     end

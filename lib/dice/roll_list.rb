@@ -13,6 +13,10 @@ module Dice
       end
     end
 
+    def roll!
+      @list.map(&:roll!)
+    end
+
     def << roll
       @list << roll
     end
@@ -26,9 +30,7 @@ module Dice
     end
 
     def vector_with_range
-      @list.map do |item|
-        item.vector_with_range
-      end.inject(&:+)
+      @list.map(&:vector_with_range).inject(&:+)
     end
 
     def to_s
