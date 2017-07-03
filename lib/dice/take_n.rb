@@ -16,25 +16,26 @@ module Dice
     end
 
     def vector
-      if count
-        case actual_group
-          when HIGHEST_N
-            roll.vector.sort.last(count)
-          when LOWEST_N
-            roll.vector.sort.first(count)
-          when MIDDLE_N
-            middle = roll.vector.length / 2
-            half = count / 2.0
-            range = [0, middle - half.floor].max ... [roll.vector.length, middle + half.ceil].min
-            roll.vector.sort[range]
-        end
-      else
-        roll.vector
-      end
+      vector_with_range.map(&:first)
     end
 
     def vector_with_range
-      roll.vector_with_range
+      if count
+        arr = roll.vector_with_range.sort {|lhs,rhs| lhs.first <=> rhs.first }
+        case actual_group
+          when HIGHEST_N
+            arr.last(count)
+          when LOWEST_N
+            arr.first(count)
+          when MIDDLE_N
+            middle = arr.length / 2
+            half = count / 2.0
+            range = [0, middle - half.floor].max ... [arr.length, middle + half.ceil].min
+            arr[range]
+        end
+      else
+        roll.vector_with_range
+      end
     end
 
     def actual_group
@@ -57,17 +58,18 @@ module Dice
     end
 
     def self.parse scanner
-      if vector_roll = Dice::VectorRoll.parse(scanner)
+      if vector_roll = Dice::SimpleRoll.parse(scanner.mark)
         if arr = scanner.scan(Dice::Parser::Token::HIGHEST_N, Dice::Parser::Token::INTEGER)
-          Dice::TakeN.new(vector_roll, arr[1], HIGHEST_N)
+          return Dice::TakeN.new(vector_roll, arr[1], HIGHEST_N)
         elsif arr = scanner.scan(Dice::Parser::Token::LOWEST_N, Dice::Parser::Token::INTEGER)
-          Dice::TakeN.new(vector_roll, arr[1], LOWEST_N)
+          return Dice::TakeN.new(vector_roll, arr[1], LOWEST_N)
         elsif arr = scanner.scan(Dice::Parser::Token::MIDDLE_N, Dice::Parser::Token::INTEGER)
-          Dice::TakeN.new(vector_roll, arr[1], MIDDLE_N)
+          return Dice::TakeN.new(vector_roll, arr[1], MIDDLE_N)
         end
-      else
-        nil
       end
+
+      scanner.reset
+      nil
     end
   end
 end

@@ -46,7 +46,6 @@ module Dice
         items = [ roll ]
         while scanner.scan(Dice::Parser::Token::COMMA)
           if roll = Dice::VectorRoll.parse(scanner)
-            pp roll
             items << roll
           else
             break

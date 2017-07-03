@@ -14,3 +14,5 @@ require 'dice/target_number_roll'
 require 'dice/take_n'
 require 'dice/roll_list'
 require 'dice/vector_roll'
+
+require 'dice/histogram'

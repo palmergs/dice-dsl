@@ -11,6 +11,8 @@ module Dice
         exploding_each
       elsif exploding = Dice::ExplodingRoll.parse(scanner)
         exploding
+      elsif taken = Dice::TakeN.parse(scanner)
+        taken
       elsif simple = Dice::SimpleRoll.parse(scanner)
         simple
       else

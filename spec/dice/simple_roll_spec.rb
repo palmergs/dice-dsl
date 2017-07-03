@@ -5,7 +5,7 @@ require 'dice/parser'
 RSpec.describe Dice::SimpleRoll do
 
   it 'persists until rerolls' do
-    sr = Dice::SimpleRoll.new(10, 100)
+    sr = Dice::SimpleRoll.new(100, 100)
     sr.roll!
     value = sr.scalar
     expect(value).to eq(sr.scalar)

@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'pp'
 require 'dice'
 
 RSpec.describe Dice::RollList do

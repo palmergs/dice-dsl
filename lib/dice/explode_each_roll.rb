@@ -1,4 +1,3 @@
-require 'pp'
 module Dice
   ExplodeEachRoll = Struct.new(:roll) do
 
