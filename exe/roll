@@ -16,7 +16,11 @@ ARGV.each do |a|
 end
 
 # read from STDIN if available
-dice << STDIN.read if STDIN.tty?
+if dice.empty?
+  dice << STDIN.read
+  puts dice.inspect
+end
+
 
 if options['--chart'] || options['-c']
   n = options['--iterations'] || options['-n'] || 1000
