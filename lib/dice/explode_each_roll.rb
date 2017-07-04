@@ -9,10 +9,10 @@ module Dice
       roll.results.map do |r|
         if r.max?
           tmp = roll.roll_one
-          r.value += tmp.value
+          r.exploded << tmp
           while tmp.max?
             tmp = roll.roll_one
-            r.value += tmp.value
+            r.exploded << tmp
           end
         end
 

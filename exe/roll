@@ -1,0 +1,50 @@
+#!/usr/bin/env ruby
+
+require 'dice'
+require 'optparse'
+require 'pp'
+
+dice = []
+options = {}
+ARGV.each do |a|
+  if a.start_with?('-')
+    tmp = a.split('=')
+    options[tmp[0]] = tmp[1] || true
+  else
+    dice << a
+  end
+end
+
+# read from STDIN if available
+dice << STDIN.read if STDIN.tty?
+
+if options['--chart'] || options['-c']
+  n = options['--iterations'] || options['-n'] || 1000
+  h = Dice::Histogram.new(dice.join(', '))
+  w = options['--width'] || options['-w'] || 40
+  h.iterations = Integer(n)
+  if options['--log']
+    puts h.log_chart
+  else
+    puts h.linear_chart(Integer(w))
+  end
+elsif options['--histo'] || options['-h']
+  n = options['--iterations'] || options['-n'] || 1000
+  s = options['--sep'] || options['-s'] || nil
+  s = "\t" if s == 'tab'
+  s = ',' if s == 'comma'
+  h = Dice::Histogram.new(dice.join(', '))
+  h.iterations = Integer(n)
+  puts h.generate.each_with_index.map {|n,idx| s ? "#{ idx  }#{ s }#{ n }" : n }
+else
+  tokens = Dice::Parser::Scanner.new(dice.join(', '))
+  dr = Dice::RollList.parse(tokens)
+  if options['--explain'] || options['-x']
+    puts "#{ dr.results.map(&:to_s).join(' + ') } = #{ dr.scalar }"
+  else
+    puts dr.scalar
+  end
+end
+
+
+

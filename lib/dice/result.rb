@@ -1,15 +1,10 @@
 module Dice
-  Result = Struct.new(:value, :range, :modifier) do
-    def to_s
-      if modifier
-        if modifier > 0
-          "#{ value } (1d#{ range }+#{ modifier })"
-        else
-          "#{ value } (1d#{ range }#{ modifier })"
-        end
-      else
-        "#{ value } (1d#{ range })"
-      end
+  class Result
+    attr_accessor :value, :range, :modifier
+    attr_reader :exploded
+    def initialize value: 0, range: 0, modifier: 0
+      @value, @range, @modifier = value, range, modifier
+      @exploded = []
     end
 
     def max?
@@ -21,11 +16,40 @@ module Dice
     end
 
     def modified_value
-      value + actual_modifier
+      value + modifier + exploded_value
     end
 
-    def actual_modifier
-      modifier || 0
+    def exploded_value
+      exploded.size > 0 ? exploded.map(&:modified_value).inject(&:+) : 0
+    end
+
+    def die_to_s
+      range > 0 ? "1d#{ range }" : ''
+    end
+
+    def modifier_to_s
+      if modifier && modifier != 0
+        if modifier > 0
+          "+#{ modifier }"
+        else
+          "#{ modifier }"
+        end
+      else
+        ''
+      end
+    end
+
+    def to_s
+      arr = [ "#{ modified_value }" ]
+      arr << ' ('
+      arr << die_to_s
+      arr << modifier_to_s
+      exploded.each do |r|
+        arr << ' + '
+        arr << r.to_s
+      end
+      arr << ')'
+      arr.join
     end
   end
 end

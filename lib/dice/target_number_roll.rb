@@ -4,9 +4,9 @@ module Dice
     def results
       roll.results.map do |r|
         if invert
-          Dice::Result.new(r.modified_value <= actual_target ? 1 : 0, 1, 0)
+          Dice::Result.new(value: r.modified_value <= actual_target ? 1 : 0, range: 1)
         else
-          Dice::Result.new(r.modified_value >= actual_target ? 1 : 0, 1, 0)
+          Dice::Result.new(value: r.modified_value >= actual_target ? 1 : 0, range: 1)
         end
       end
     end

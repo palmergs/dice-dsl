@@ -7,7 +7,7 @@ module Dice
 
     def results
       if modifier
-        roll.results + [ Dice::Result.new(0, 0, modifier) ]
+        roll.results + [ Dice::Result.new(modifier: modifier) ]
       else
         roll.results
       end

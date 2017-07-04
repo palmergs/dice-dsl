@@ -2,7 +2,7 @@ module Dice
   SimpleRoll = Struct.new(:range, :count) do
 
     def roll_one
-      Dice::Result.new(rand(range) + 1, range, 0)
+      Dice::Result.new(value: rand(range) + 1, range: range)
     end
 
     def roll!
