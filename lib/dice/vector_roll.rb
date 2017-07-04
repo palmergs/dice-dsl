@@ -13,6 +13,8 @@ module Dice
         exploding
       elsif taken = Dice::TakeN.parse(scanner)
         taken
+      elsif target = Dice::TargetNumberRoll.parse(scanner)
+        target
       elsif simple = Dice::SimpleRoll.parse(scanner)
         simple
       else
