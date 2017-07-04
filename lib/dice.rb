@@ -5,6 +5,7 @@ require 'dice/parser'
 
 require 'dice/result'
 
+require 'dice/has_values'
 require 'dice/simple_roll'
 require 'dice/modified_roll'
 require 'dice/modify_each_roll'

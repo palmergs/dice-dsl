@@ -5,19 +5,11 @@ module Dice
       roll.roll!
     end
 
-    def scalar
-      vector.inject(&:+)
-    end
-
-    def vector
-      vector_with_range.map(&:first)
-    end
-
-    def vector_with_range
+    def results
       if modifier
-        roll.vector_with_range << [ modifier, 0 ]
+        roll.results + [ Dice::Result.new(0, 0, modifier) ]
       else
-        roll.vector_with_range
+        roll.results
       end
     end
 
@@ -49,4 +41,6 @@ module Dice
       nil
     end
   end
+
+  ModifiedRoll.include(Dice::HasValues)
 end

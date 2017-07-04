@@ -2,33 +2,15 @@ module Dice
   SimpleRoll = Struct.new(:range, :count) do
 
     def roll_one
-      Dice::Result.new(rand(range) + 1, range)
+      Dice::Result.new(rand(range) + 1, range, 0)
     end
 
     def roll!
       @last_roll = actual_count.times.collect { roll_one }
     end
 
-    def roll?
-      !@last_roll.nil?
-    end
-
-    def roll
+    def results
       @last_roll ||= roll!
-    end
-
-    def scalar
-      vector.inject(&:+)
-    end
-
-    def vector
-      roll.map(&:value)
-    end
-
-    def vector_with_range
-      roll.map do |r| 
-        [ r.value, r.range ] 
-      end
     end
 
     def actual_count
@@ -49,4 +31,6 @@ module Dice
       end
     end
   end
+
+  SimpleRoll.include(Dice::HasValues)
 end

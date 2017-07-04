@@ -6,22 +6,15 @@ module Dice
     HIGHEST_N = :highest
     LOWEST_N = :lowest
     MIDDLE_N = :middle
+    OP = { HIGHEST_N => '^', LOWEST_N => '`', MIDDLE_N => '~' }
 
     def roll!
       roll.roll!
     end
 
-    def scalar
-      vector.inject(&:+)
-    end
-
-    def vector
-      vector_with_range.map(&:first)
-    end
-
-    def vector_with_range
+    def results
       if count
-        arr = roll.vector_with_range.sort {|lhs,rhs| lhs.first <=> rhs.first }
+        arr = roll.results.sort {|lhs,rhs| lhs.modified_value <=> rhs.modified_value }
         case actual_group
           when HIGHEST_N
             arr.last(count)
@@ -34,7 +27,7 @@ module Dice
             arr[range]
         end
       else
-        roll.vector_with_range
+        roll.results
       end
     end
 
@@ -44,14 +37,7 @@ module Dice
 
     def to_s
       if count
-        case actual_group
-          when HIGHEST_N
-            "#{ roll.to_s }^#{ count }"
-          when LOWEST_N
-            "#{ roll.to_s }`#{ count }"
-          when MIDDLE_N
-            "#{ roll.to_s }~#{ count }"
-        end
+        "#{ roll.to_s }#{ OP[actual_group] }#{ count }"
       else
         roll.to_s
       end
@@ -72,4 +58,6 @@ module Dice
       nil
     end
   end
+
+  TakeN.include(Dice::HasValues)
 end

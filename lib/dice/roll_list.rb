@@ -1,5 +1,7 @@
 module Dice
   class RollList
+    include Dice::HasValues
+
     attr_reader :list
 
     def initialize *args
@@ -14,23 +16,15 @@ module Dice
     end
 
     def roll!
-      @list.map(&:roll!)
+      @list.each(&:roll!)
+    end
+
+    def results
+      @list.map(&:results).flatten
     end
 
     def << roll
       @list << roll
-    end
-
-    def scalar
-      vector.inject(&:+)
-    end
-
-    def vector
-      vector_with_range.map(&:first)
-    end
-
-    def vector_with_range
-      @list.map(&:vector_with_range).inject(&:+)
     end
 
     def to_s

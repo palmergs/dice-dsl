@@ -5,28 +5,18 @@ module Dice
       roll.roll!
     end
 
-    def scalar
-      vector.inject(&:+)
-    end
-
-    def vector
-      vector_with_range.map(&:first)
-    end
-
-    def vector_with_range
-      arr = roll.vector_with_range
-      arr.map do |pair|
-        if pair[0] == pair[1]
-          tmp = roll.roll_one.to_a
-          pair[0] += tmp[0]
-          while tmp[0] == tmp[1]
-            tmp = roll.roll_one.to_a
-            pair[0] += tmp[0]
+    def results
+      roll.results.map do |r|
+        if r.max?
+          tmp = roll.roll_one
+          r.value += tmp.value
+          while tmp.max?
+            tmp = roll.roll_one
+            r.value += tmp.value
           end
-          pair
-        else
-          pair
         end
+
+        r
       end
     end
 
@@ -46,4 +36,6 @@ module Dice
       nil
     end
   end
+
+  ExplodeEachRoll.include(Dice::HasValues)
 end

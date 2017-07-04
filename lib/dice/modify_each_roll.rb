@@ -5,19 +5,19 @@ module Dice
       roll.roll!
     end
 
+    def results
+      if modifier
+        roll.results.each {|r| r.modifier = actual_modifier }
+      end
+      roll.results
+    end
+
     def scalar
       vector.inject(&:+)
     end
 
     def vector
-      vector_with_range.map(&:first)
-    end
-
-    def vector_with_range
-      arr = roll.vector_with_range
-      arr.map do |pair|
-        [ pair[0] + actual_modifier, pair[1] ]
-      end
+      results.map(&:modified_value)
     end
 
     def actual_modifier

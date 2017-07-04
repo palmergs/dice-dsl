@@ -1,24 +1,12 @@
 module Dice
   TargetNumberRoll = Struct.new(:roll, :target, :invert) do
 
-    def roll!
-      roll.roll!
-    end
-
-    def scalar
-      vector.inject(&:+)
-    end
-
-    def vector
-      vector_with_range.map(&:first)
-    end
-
-    def vector_with_range
-      roll.vector_with_range.map do |pair|
+    def results
+      roll.results.map do |r|
         if invert
-          pair[0] <= actual_target ? [ 1, 1 ] : [ 0, 1 ]
+          Dice::Result.new(r.modified_value <= actual_target ? 1 : 0, 1, 0)
         else
-          pair[0] >= actual_target ? [ 1, 1 ] : [ 0, 1 ]
+          Dice::Result.new(r.modified_value >= actual_target ? 1 : 0, 1, 0)
         end
       end
     end
@@ -63,4 +51,6 @@ module Dice
       end
     end
   end
+
+  TargetNumberRoll.include(Dice::HasValues)
 end
