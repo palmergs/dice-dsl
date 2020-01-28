@@ -29,7 +29,7 @@ This is a dice roller with options for more complex rules. For each roll type, a
 * `Dice::ModifyEachRoll.parse('3d6++2')` allows for a roll of any number of dice where each is modified by a fixed amount
 * `Dice::ExplodingRoll.parse('2d6!')` allows for a roll of dice; if all the dice rolled are the maximum value then the die is rerolled. This continues until a non-maximum die is rolled
 * `Dice::ExplodeEachRoll.parse('3d6!!')` allows for a roll of dice; for each die that is the maximum value reroll until a non maximum value is rolled
-* `Dice::TakeN.parse('4d6^3')` or `Dice::TakeN.parse('4d6\`3')` or `Dice::TakeN.parse('4d6~3')` take the top, bottom or middle N of a series of rolled dice
+* `Dice::TakeN.parse('4d6^3')` or `Dice::TakeN.parse('4d6\\`3')` or `Dice::TakeN.parse('4d6~3')` take the top, bottom or middle N of a series of rolled dice
 * `Dice::RollList.parse('3d6, 2d8--1, 1d10, 2d12++1')` builds a vector of all the individial dice rolls separated by commas
 
 There is a histogram class that can generate a chart of the given results:
