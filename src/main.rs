@@ -104,33 +104,33 @@ fn parse_num(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, n: u32) {
                     return parse_num(tokens, iter, n)
                 },
                 _ => {
-                    tokens.push(Token::Num(n as usize));
+                    tokens.push(Token::Num(n as u64));
                     return parse(tokens, iter, &curr)
                 }
             }
         },
         None => {
-            tokens.push(Token::Num(n as usize));
+            tokens.push(Token::Num(n as u64));
             return parse(tokens, iter, &curr)
         }
     }
 }
 
-fn parse_percent(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, cnt: usize) {
+fn parse_percent(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, cnt: u32) {
     let curr = iter.next();
     match curr {
         Some(c) => {
             match c {
                 '%' => return parse_percent(tokens, iter, cnt + 1),
                 _ => {
-                    tokens.push(Token::Num((10 as usize).pow(cnt as u32)));
+                    tokens.push(Token::Num((10 as u64).pow(cnt as u32)));
                     let curr = iter.next();
                     return parse(tokens, iter, &curr)
                 }
             }
         },
         None => {
-            tokens.push(Token::Num(cnt.pow(10)));
+            tokens.push(Token::Num(cnt.pow(10) as u64));
             return parse(tokens, iter, &curr)
         }
     }
@@ -138,7 +138,7 @@ fn parse_percent(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, cnt: usize
 
 #[derive(Debug)]
 enum Token {
-    Num(usize),
+    Num(u64),
     D,
     Op(String),
     Comma,
