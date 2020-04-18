@@ -1,41 +1,22 @@
-extern crate clap;
-use clap::{ App, Arg };
-
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
-
-fn main() {
-    let matches = App::new("dice").
-        version(VERSION).
-        about("Generates random dice rolls").
-        author("Galen P.").
-        arg(Arg::with_name("iterations").
-            long("iterations").
-            help("Number of iterations to run").
-            takes_value(true)).
-        arg(Arg::with_name("input").
-            index(1).
-            help("The dice string to parse").
-            required(true)).
-        get_matches();
-
-    // let iterations = matches.value_of("iterations").unwrap_or("1");
-    // let iterations = iterations.parse::<i32>().unwrap();
-
-    let input = matches.value_of("input").unwrap();
-    let mut tokens: Vec<Token> = Vec::new();
-    let mut iter = &mut input.chars();
-    let curr = iter.next();
-    parse(&mut tokens, &mut iter, &curr);
-
-    println!("Tokens parsed are:");
-    for t in tokens {
-        println!("{:?}", t);
-    }
-}
-
 const RADIX: u32 = 10;
 
-fn parse(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, curr: &Option<char>) {
+#[derive(Debug)]
+pub enum Token {
+    Num(u64),
+    D,
+    Plus,
+    PlusEach,
+    Minus,
+    MinusEach,
+    Explode,
+    ExplodeEach,
+    TakeHigh,
+    TakeMiddle,
+    TakeLow,
+    Comma,
+}
+
+pub fn parse(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, curr: &Option<char>) {
     match curr {
         Some(c) => {
             match c {
@@ -150,18 +131,4 @@ fn parse_percent(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, cnt: u32) 
     }
 }
 
-#[derive(Debug)]
-enum Token {
-    Num(u64),
-    D,
-    Plus,
-    PlusEach,
-    Minus,
-    MinusEach,
-    Explode,
-    ExplodeEach,
-    TakeHigh,
-    TakeMiddle,
-    TakeLow,
-    Comma,
-}
+
