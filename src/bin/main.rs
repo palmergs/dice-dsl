@@ -25,7 +25,7 @@ fn main() {
     let mut tokens: Vec<dice_dsl::Token> = Vec::new();
     let mut iter = &mut input.chars();
     let curr = iter.next();
-    dice_dsl::parse(&mut tokens, &mut iter, &curr);
+    dice_dsl::tokenize(&mut tokens, &mut iter, &curr);
 
     println!("Tokens parsed are:");
     for t in tokens {
