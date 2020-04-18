@@ -50,9 +50,18 @@ fn parse(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, curr: &Option<char
                 '+' | '-' | '!' => {
                     return parse_op(tokens, iter, *c)
                 },
-                '~' | '`' | '^' => {
-                    let op: String = vec![ c ].into_iter().collect();
-                    tokens.push(Token::Op(String::from(op)));
+                '~' => {
+                    tokens.push(Token::TakeMiddle); 
+                    let curr = iter.next();
+                    return parse(tokens, iter, &curr)
+                },
+                '`' => {
+                    tokens.push(Token::TakeLow);
+                    let curr = iter.next();
+                    return parse(tokens, iter, &curr)
+                },
+                '^' => {
+                    tokens.push(Token::TakeHigh);
                     let curr = iter.next();
                     return parse(tokens, iter, &curr)
                 },
@@ -76,22 +85,27 @@ fn parse_op(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, prev: char) {
     match curr {
         Some(c) => {
             if c == prev {
-                let op: String = vec![ prev, c ].into_iter().collect();
-                tokens.push(Token::Op(String::from(op)));
+                match prev {
+                    '+' => tokens.push(Token::PlusEach),
+                    '-' => tokens.push(Token::MinusEach),
+                    '!' => tokens.push(Token::ExplodeEach),
+                    _ => {}
+                }
+
                 let curr = iter.next();
                 return parse(tokens, iter, &curr)
             }
-
-            let op: String = vec![ prev ].into_iter().collect();
-            tokens.push(Token::Op(String::from(op)));
-            return parse(tokens, iter, &curr)
         },
-        None => {
-            let op: String = vec![ prev ].into_iter().collect();
-            tokens.push(Token::Op(String::from(op)));
-            return parse(tokens, iter, &curr)
-        }
+        None => {}
     }
+
+    match prev {
+        '+' => tokens.push(Token::Plus),
+        '-' => tokens.push(Token::Minus),
+        '!' => tokens.push(Token::Explode),
+        _ => {}
+    }
+    return parse(tokens, iter, &curr)
 }
 
 fn parse_num(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, n: u32) {
@@ -130,7 +144,7 @@ fn parse_percent(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, cnt: u32) 
             }
         },
         None => {
-            tokens.push(Token::Num(cnt.pow(10) as u64));
+            tokens.push(Token::Num((10 as u64).pow(cnt as u32)));
             return parse(tokens, iter, &curr)
         }
     }
@@ -140,6 +154,14 @@ fn parse_percent(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, cnt: u32) 
 enum Token {
     Num(u64),
     D,
-    Op(String),
+    Plus,
+    PlusEach,
+    Minus,
+    MinusEach,
+    Explode,
+    ExplodeEach,
+    TakeHigh,
+    TakeMiddle,
+    TakeLow,
     Comma,
 }
