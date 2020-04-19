@@ -1,8 +1,8 @@
 const RADIX: u32 = 10;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Token {
-    Num(u64),
+    Num(i64),
     D,
     Plus,
     PlusEach,
@@ -13,7 +13,12 @@ pub enum Token {
     TakeHigh,
     TakeMiddle,
     TakeLow,
+    NoOp,
     Comma,
+}
+
+impl Default for Token {
+  fn default() -> Self { Token::NoOp }
 }
 
 pub fn tokenize(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, curr: &Option<char>) {
@@ -99,13 +104,13 @@ fn tokenize_num(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, n: u32) {
                     return tokenize_num(tokens, iter, n)
                 },
                 _ => {
-                    tokens.push(Token::Num(n as u64));
+                    tokens.push(Token::Num(n as i64));
                     return tokenize(tokens, iter, &curr)
                 }
             }
         },
         None => {
-            tokens.push(Token::Num(n as u64));
+            tokens.push(Token::Num(n as i64));
             return tokenize(tokens, iter, &curr)
         }
     }
@@ -118,14 +123,14 @@ fn tokenize_percent(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, cnt: u3
             match c {
                 '%' => return tokenize_percent(tokens, iter, cnt + 1),
                 _ => {
-                    tokens.push(Token::Num((10 as u64).pow(cnt as u32)));
+                    tokens.push(Token::Num((10 as i64).pow(cnt as u32)));
                     let curr = iter.next();
                     return tokenize(tokens, iter, &curr)
                 }
             }
         },
         None => {
-            tokens.push(Token::Num((10 as u64).pow(cnt as u32)));
+            tokens.push(Token::Num((10 as i64).pow(cnt as u32)));
             return tokenize(tokens, iter, &curr)
         }
     }
