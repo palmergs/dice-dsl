@@ -1,5 +1,5 @@
 mod tokenizer;
-pub use tokenizer::{ tokenize, Token };
+pub use tokenizer::{tokenize, Token};
 
 mod generator;
-pub use generator::{ Roll, Result, Roller, ListRoller };
+pub use generator::{ListRoller, Result, Roll, Roller};
