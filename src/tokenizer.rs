@@ -1,6 +1,6 @@
 const RADIX: u32 = 10;
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum Token {
     Num(u64),
     D,
