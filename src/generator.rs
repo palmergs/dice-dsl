@@ -11,18 +11,6 @@ pub struct Roll {
     pub explode: bool
 }
 
-impl fmt::Display for Roll {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if self.die_mod > 0 {
-            write!(f, "d{}+{}", self.range, self.die_mod)
-        } else if self.die_mod < 0 {
-            write!(f, "d{}{}", self.range, self.die_mod)
-        } else {
-            write!(f, "d{}", self.range)
-        }
-    }
-}
-
 impl Roll {
     pub fn roll(range: i64, modifier: i64, explode: bool) -> Roll {
         let mut rng = rand::thread_rng();
@@ -58,7 +46,13 @@ impl fmt::Display for Result {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for (idx, r) in self.rolls.iter().enumerate() {
             if idx > 0 { write!(f, " + ")?; }
-            write!(f, "{}", r)?;
+            if r.die_mod > 0 {
+                write!(f, "d{}+{}", r.value, r.die_mod)?;
+            } else if r.die_mod < 0 {
+                write!(f, "d{}{}", r.value, r.die_mod)?;
+            } else {
+                write!(f, "d{}", r.value)?;
+            }
             if r.explode { write!(f, " (*)")?; }
         }
         if self.all_mod > 0 { write!(f, " + {}", self.all_mod)?; }
