@@ -6,9 +6,7 @@ pub struct Roll {
     pub range: i64,
     pub die_mod: i64,
     pub value: i64,
-    pub explode: bool,
-    pub success: bool,
-    pub kept: bool,
+    pub explode: bool
 }
 
 impl Roll {
@@ -18,31 +16,54 @@ impl Roll {
         return Roll {
             range: range,
             die_mod: modifier,
-            value: (value + modifier),
-            explode: explode,
-            success: true,
-            kept: true,
+            value: value,
+            explode: explode
         }
+    }
+
+    pub fn total(&self) -> i64 {
+        return self.value + self.die_mod
+    }
+
+    pub fn max(&self) -> bool {
+        return self.value == self.range
+    }
+
+    pub fn min(&self) -> bool {
+        return self.value == 1
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct Result {
     pub rolls: Vec<Roll>,
-    pub val_tgt: i64,
     pub all_mod: i64,
 }
 
 impl Result {
     pub fn sum(&self) -> i64 {
         let mut sum: i64 = 0;
-        for r in self.rolls.iter() {
-            if r.success && r.kept && r.value > self.val_tgt {
-                sum += r.value;
-            }
-        }
+        for r in self.rolls.iter() { sum += r.total(); }
         sum += self.all_mod;
         return sum;
+    }
+
+    pub fn target(&self, tgt: i64) -> i64 {
+        let mut count:i64 = 0;
+        for r in self.rolls.iter() {
+            if r.total() > tgt { count += 1; }
+        }
+        return count
+    }
+
+    pub fn max(&self) -> bool {
+        for roll in self.rolls.iter() { if !roll.max() { return false } }
+        return true
+    }  
+
+    pub fn min(&self) -> bool {
+        for roll in self.rolls.iter() { if !roll.min() { return false } }
+        return true
     }
 }
 
@@ -57,9 +78,6 @@ pub struct Roller {
     // the modifier type for this roller: e.g. ++, --, +, -, !
     pub op: Option<Token>,
 
-    // target value: rolls that exceed this value are successes
-    pub val_tgt: i64,
-
     // die mod: the modifier for each die rolled
     pub die_mod: i64,
 
@@ -73,7 +91,6 @@ impl Roller {
             count: 0,
             range: 0,
             op: None,
-            val_tgt: 0,
             die_mod: 0,
             all_mod: 0,
         };
@@ -84,35 +101,32 @@ impl Roller {
     pub fn roll(&self) -> Result {
         let mut result = Result {
             rolls: Vec::new(),
-            val_tgt: self.val_tgt,
             all_mod: self.all_mod,
         };
 
-        let explode = self.op.unwrap_or_default() == Token::ExplodeEach;
+        let explode_each = self.op.unwrap_or_default() == Token::ExplodeEach;
         for _ in 0..self.count {
             let mut roll = Roll::roll(self.range, self.die_mod, false);
             result.rolls.push(roll);
-            while explode && roll.value == roll.range {
+            while explode_each && roll.value == roll.range {
                 roll = Roll::roll(self.range, self.die_mod, true);
                 result.rolls.push(roll);
             }
-
         }
-        return result;
-    }
 
-    pub fn roll_one(&self) -> Roll {
-        let mut rng = rand::thread_rng();
-        let value = rng.gen_range(1, self.range + 1) as i64;
-        let explode = self.op.unwrap_or_default() == Token::ExplodeEach;
-        return Roll {
-            range: self.range,
-            die_mod: self.die_mod,
-            value: (value + self.die_mod),
-            explode: (explode && value == self.range),
-            success: (value > self.val_tgt),
-            kept: true,
-        };
+        let explode_all = self.op.unwrap_or_default() == Token::Explode;
+        if explode_all {
+            if result.max() {
+                let mut roll = Roll::roll(self.range, self.die_mod, true);
+                result.rolls.push(roll);
+                while roll.value == roll.range {
+                    roll = Roll::roll(self.range, self.die_mod, true);
+                    result.rolls.push(roll);
+                }
+            }        
+        }
+
+        return result;
     }
 
     fn build_roller(roller: &mut Roller, tokens: &Vec<Token>, idx: usize) -> usize {
