@@ -1,3 +1,5 @@
+use std::fmt;
+
 use super::Token;
 use rand::Rng;
 
@@ -7,6 +9,18 @@ pub struct Roll {
     pub die_mod: i64,
     pub value: i64,
     pub explode: bool
+}
+
+impl fmt::Display for Roll {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if self.die_mod > 0 {
+            write!(f, "d{}+{}", self.range, self.die_mod)
+        } else if self.die_mod < 0 {
+            write!(f, "d{}{}", self.range, self.die_mod)
+        } else {
+            write!(f, "d{}", self.range)
+        }
+    }
 }
 
 impl Roll {
@@ -38,6 +52,49 @@ impl Roll {
 pub struct Result {
     pub rolls: Vec<Roll>,
     pub all_mod: i64,
+}
+
+impl fmt::Display for Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for (idx, r) in self.rolls.iter().enumerate() {
+            if idx > 0 { write!(f, " + ")?; }
+            write!(f, "{}", r)?;
+            if r.explode { write!(f, " (*)")?; }
+        }
+        if self.all_mod > 0 { write!(f, " + {}", self.all_mod)?; }
+        if self.all_mod < 0 { write!(f, " - {}", self.all_mod.abs())?; }
+
+        write!(f, " = ")?;       
+        
+        let mut cnt = 0; // keep track of how many numbers are being added 
+        for (idx, r) in self.rolls.iter().enumerate() {
+            if idx > 0 { write!(f, " + ")?; }
+            if r.die_mod > 0 {
+                write!(f, "{}+{}", r.value, r.die_mod)?;
+                cnt += 2;
+            } else if r.die_mod < 0 {
+                write!(f, "{}{}", r.value, r.die_mod)?;
+                cnt += 2;
+            } else {
+                write!(f, "{}", r.value)?;
+                cnt += 1;
+            }
+            if r.explode { write!(f, " (*)")?; }
+        }
+        if self.all_mod > 0 { 
+            write!(f, " + {}", self.all_mod)?; 
+            cnt += 1;
+        }
+        if self.all_mod < 0 { 
+            write!(f, " - {}", self.all_mod.abs())?; 
+            cnt += 1;
+        }
+
+        // if more than one number was added in the previous section, summarize here
+        if cnt > 1 { write!(f, " = {}", self.sum())?; }
+
+        return Ok(())
+    }
 }
 
 impl Result {
@@ -208,11 +265,17 @@ impl Roller {
             Token::Num(n) => {
                 match roller.op {
                     Some(t) => match t {
-                        Token::PlusEach | Token::MinusEach => {
+                        Token::PlusEach => {   
                             roller.die_mod = *n;
                         }
-                        Token::Plus | Token::Minus => {
+                        Token::MinusEach => {
+                            roller.die_mod = *n * -1;
+                        }
+                        Token::Plus => {
                             roller.all_mod = *n;
+                        }
+                        Token::Minus => {
+                            roller.all_mod = *n * -1;
                         }
                         _ => (),
                     },

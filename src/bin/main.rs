@@ -1,3 +1,7 @@
+use std::io;
+use std::io::prelude::*;
+use std::fs;
+
 extern crate clap;
 use clap::{App, Arg};
 
@@ -24,17 +28,25 @@ fn main() {
                 .help("Deplay the results generated"),
         )
         .arg(
-            Arg::with_name("input")
+            Arg::with_name("file")
+                .long("file")
+                .takes_value(true)
+                .help("Read the generator tokens from a file"),
+        )
+        .arg(
+            Arg::with_name("sum")
+                .long("sum")
+                .help("Sum all results values into a single value")
+        )
+        .arg(
+            Arg::with_name("INPUT")
                 .index(1)
-                .help("The dice string to parse")
-                .required(true),
+                .multiple(true)
+                .help("The dice string to parse"),
         )
         .get_matches();
 
-    // let iterations = args.value_of("iterations").unwrap_or("1");
-    // let iterations = iterations.parse::<i32>().unwrap();
-
-    let input = matches.value_of("input").unwrap();
+    let input = input_string(&matches);
     let mut tokens: Vec<dice_dsl::Token> = Vec::new();
     let mut iter = &mut input.chars();
     let curr = iter.next();
@@ -59,13 +71,44 @@ fn main() {
     let results = roller.roll();
     if matches.occurrences_of("results") > 0 {
         for r in results.iter() {
-            println!("Result: {:?}", r);
+            println!("Result: {}", r);
         }
     }
 
-    let mut sum: i64 = 0;
-    for r in results.iter() {
-        sum += r.sum();
+    if matches.occurrences_of("sum") > 0 {
+        let mut sum: i64 = 0;
+        for r in results.iter() { sum += r.sum(); }
+        println!("{}", sum);
+    } else {
+        for r in results.iter() { println!("{}", r.sum()); }
     }
-    println!("{}", sum);
+}
+
+fn input_string(matcher: &clap::ArgMatches) -> String {
+    match matcher.value_of("file") {
+        Some(file)  => {
+            match fs::read_to_string(file) {
+                Ok(contents) => { 
+                    return contents.trim().replace("\n", ",") 
+                },
+                Err(_)       => panic!("file {} could not be read", file)
+            }
+        }
+        None        => {
+            match matcher.values_of("INPUT") {
+                Some(values) => {
+                    let mut tmp: Vec<String> = Vec::new();
+                    for v in values { tmp.push(v.to_string()); }
+                    return tmp.join(",")
+                }
+                None         => {
+                    let mut buffer = String::new();
+                    match io::stdin().read_to_string(&mut buffer) {
+                        Ok(_) => return buffer,
+                        Err(_) => panic!("could not read from STDIN")
+                    }
+                }
+            }
+        }
+    }
 }
