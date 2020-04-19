@@ -12,15 +12,17 @@ pub struct Roll {
 }
 
 impl Roll {
-    pub fn roll(range: i64, modifier: i64, explode: bool) {
+    pub fn roll(range: i64, modifier: i64, explode: bool) -> Roll {
         let mut rng = rand::thread_rng();
+        let value = rng.gen_range(1, range + 1) as i64;
         return Roll {
             range: range,
-            die_mode: modifier,
+            die_mod: modifier,
+            value: (value + modifier),
             explode: explode,
             success: true,
             kept: true,
-        };
+        }
     }
 }
 
@@ -86,9 +88,15 @@ impl Roller {
             all_mod: self.all_mod,
         };
 
+        let explode = self.op.unwrap_or_default() == Token::ExplodeEach;
         for _ in 0..self.count {
-            let mut roll = self.roll_one();
+            let mut roll = Roll::roll(self.range, self.die_mod, false);
             result.rolls.push(roll);
+            while explode && roll.value == roll.range {
+                roll = Roll::roll(self.range, self.die_mod, true);
+                result.rolls.push(roll);
+            }
+
         }
         return result;
     }
