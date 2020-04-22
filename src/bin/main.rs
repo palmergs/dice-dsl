@@ -47,11 +47,7 @@ fn main() {
         .get_matches();
 
     let input = input_string(&matches);
-    let mut tokens: Vec<dice_dsl::Token> = Vec::new();
-    let mut iter = &mut input.chars();
-    let curr = iter.next();
-    dice_dsl::tokenize(&mut tokens, &mut iter, &curr);
-
+    let tokens = dice_dsl::tokens(&input);
     if matches.occurrences_of("tokenizer") > 0 {
         print!("Token:");
         for t in tokens.iter() {

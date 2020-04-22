@@ -23,6 +23,14 @@ impl Default for Token {
     }
 }
 
+pub fn tokens(input: &String) -> Vec<Token> {
+    let mut tokens: Vec<Token> = Vec::new();
+    let mut iter = &mut input.chars();
+    let curr = iter.next();
+    tokenize(&mut tokens, &mut iter, &curr);
+    return tokens
+}
+
 pub fn tokenize(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, curr: &Option<char>) {
     match curr {
         Some(c) => match c {
