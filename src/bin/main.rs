@@ -39,6 +39,11 @@ fn main() {
                 .help("Sum all results values into a single value")
         )
         .arg(
+            Arg::with_name("chart")
+                .long("chart")
+                .help("Display the results as a chart"),
+        )
+        .arg(
             Arg::with_name("INPUT")
                 .index(1)
                 .multiple(true)
@@ -64,19 +69,23 @@ fn main() {
         println!("Generator: {:?}", roller);
     }
 
-    let results = roller.roll();
-    if matches.occurrences_of("results") > 0 {
-        for r in results.iter() {
-            println!("Result: {}", r);
-        }
-    }
-
-    if matches.occurrences_of("sum") > 0 {
-        let mut sum: i64 = 0;
-        for r in results.iter() { sum += r.sum(); }
-        println!("{}", sum);
+    if matches.occurrences_of("chart") > 0 {
+        dice_dsl::chart(&roller, 100_000);
     } else {
-        for r in results.iter() { println!("{}", r.sum()); }
+        let results = roller.roll();
+        if matches.occurrences_of("results") > 0 {
+            for r in results.iter() {
+                println!("Result: {}", r);
+            }
+        }
+
+        if matches.occurrences_of("sum") > 0 {
+            let mut sum: i64 = 0;
+            for r in results.iter() { sum += r.sum(); }
+            println!("{}", sum);
+        } else {
+            for r in results.iter() { println!("{}", r.sum()); }
+        }
     }
 }
 
