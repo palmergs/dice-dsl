@@ -71,8 +71,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 There is also a top-level `Cargo.toml` and `src` directory to define a rust based library and command line application. It works similarly to the ruby version:
 
     > cargo build --release
-    > target/release/roll 2d8\!\!
-    target/release/roll --chart 2d8\!\!
+    > target/release/roll --chart 2d8\!\!
      2. 100.0: ********
      3.  98.4: ***************
      4.  95.2: ***********************
