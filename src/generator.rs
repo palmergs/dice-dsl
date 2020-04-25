@@ -3,12 +3,13 @@ use std::fmt;
 use super::Token;
 use rand::Rng;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Roll {
     pub range: i64,
     pub die_mod: i64,
     pub value: i64,
-    pub explode: bool
+    pub explode: bool,
+    pub keep: bool
 }
 
 impl Roll {
@@ -19,7 +20,8 @@ impl Roll {
             range: range,
             die_mod: modifier,
             value: value,
-            explode: explode
+            explode: explode,
+            keep: true
         }
     }
 
@@ -39,6 +41,7 @@ impl Roll {
 #[derive(Debug, Clone)]
 pub struct Result {
     pub rolls: Vec<Roll>,
+    pub op: Option<Token>,
     pub all_mod: i64,
 }
 
@@ -47,41 +50,62 @@ impl fmt::Display for Result {
         for (idx, r) in self.rolls.iter().enumerate() {
             if idx > 0 { write!(f, " + ")?; }
             if r.die_mod > 0 {
-                write!(f, "d{}+{}", r.value, r.die_mod)?;
+                write!(f, "d{}+{}", r.range, r.die_mod)?;
             } else if r.die_mod < 0 {
-                write!(f, "d{}{}", r.value, r.die_mod)?;
+                write!(f, "d{}{}", r.range, r.die_mod)?;
             } else {
-                write!(f, "d{}", r.value)?;
+                write!(f, "d{}", r.range)?;
             }
             if r.explode { write!(f, " (*)")?; }
         }
-        if self.all_mod > 0 { write!(f, " + {}", self.all_mod)?; }
-        if self.all_mod < 0 { write!(f, " - {}", self.all_mod.abs())?; }
+
+        match self.op {
+            Some(op) => {
+                match op {
+                    Token::Plus => write!(f, " + {}", self.all_mod)?,
+                    Token::Minus => write!(f, " - {}", self.all_mod)?,
+                    _ => ()
+                }
+            }
+            None => ()
+        }
 
         write!(f, " = ")?;       
         
         let mut cnt = 0; // keep track of how many numbers are being added 
         for (idx, r) in self.rolls.iter().enumerate() {
             if idx > 0 { write!(f, " + ")?; }
-            if r.die_mod > 0 {
+            if r.keep && r.die_mod > 0 {
                 write!(f, "{}+{}", r.value, r.die_mod)?;
                 cnt += 2;
-            } else if r.die_mod < 0 {
+            } else if r.keep && r.die_mod < 0 {
                 write!(f, "{}{}", r.value, r.die_mod)?;
                 cnt += 2;
-            } else {
+            } else if r.keep {
                 write!(f, "{}", r.value)?;
+                cnt += 1;
+            } else {
+                write!(f, "0 ({})", r.value)?;
                 cnt += 1;
             }
             if r.explode { write!(f, " (*)")?; }
         }
-        if self.all_mod > 0 { 
-            write!(f, " + {}", self.all_mod)?; 
-            cnt += 1;
-        }
-        if self.all_mod < 0 { 
-            write!(f, " - {}", self.all_mod.abs())?; 
-            cnt += 1;
+
+        match self.op {
+            Some(op) => {
+                match op {
+                    Token::Plus => {
+                        write!(f, " + {}", self.all_mod)?;
+                        cnt += 1;
+                    }
+                    Token::Minus => {
+                        write!(f, " - {}", self.all_mod)?;
+                        cnt += 1;
+                    }
+                    _ => ()
+                }
+            },
+            None => ()
         }
 
         // if more than one number was added in the previous section, summarize here
@@ -94,26 +118,42 @@ impl fmt::Display for Result {
 impl Result {
     pub fn sum(&self) -> i64 {
         let mut sum: i64 = 0;
-        for r in self.rolls.iter() { sum += r.total(); }
-        sum += self.all_mod;
+        for r in self.rolls.iter() { 
+            if r.keep { sum += r.total(); }
+        }
+        match self.op {
+            Some(op) => {
+                match op {
+                    Token::Plus | Token::Minus => {
+                        sum += self.all_mod;
+                    }
+                    _ => ()
+                }
+            }
+            None => ()
+        }
         return sum;
     }
 
     pub fn target(&self, tgt: i64) -> i64 {
         let mut count:i64 = 0;
         for r in self.rolls.iter() {
-            if r.total() > tgt { count += 1; }
+            if r.keep && r.total() > tgt { count += 1; }
         }
         return count
     }
 
     pub fn max(&self) -> bool {
-        for roll in self.rolls.iter() { if !roll.max() { return false } }
+        for roll in self.rolls.iter() { 
+            if !roll.max() || !roll.keep { return false }
+        }
         return true
     }  
 
     pub fn min(&self) -> bool {
-        for roll in self.rolls.iter() { if !roll.min() { return false } }
+        for roll in self.rolls.iter() {
+            if !roll.min() || !roll.keep { return false }
+        }
         return true
     }
 }
@@ -152,10 +192,13 @@ impl Roller {
     pub fn roll(&self) -> Result {
         let mut result = Result {
             rolls: Vec::new(),
+            op: self.op,
             all_mod: self.all_mod,
         };
 
-        let explode_each = self.op.unwrap_or_default() == Token::ExplodeEach;
+        let op = self.op.unwrap_or_default();
+
+        let explode_each = op == Token::ExplodeEach;
         for _ in 0..self.count {
             let mut roll = Roll::roll(self.range, self.die_mod, false);
             result.rolls.push(roll);
@@ -165,7 +208,7 @@ impl Roller {
             }
         }
 
-        let explode_all = self.op.unwrap_or_default() == Token::Explode;
+        let explode_all = op == Token::Explode;
         if explode_all {
             if result.max() {
                 let mut roll = Roll::roll(self.range, self.die_mod, true);
@@ -176,6 +219,37 @@ impl Roller {
                 }
             }        
         }
+
+        match op {
+            Token::TakeHigh => {
+                result.rolls.sort_by(|a, b| b.value.cmp(&a.value));
+                for idx in result.all_mod as usize..result.rolls.len() {
+                    result.rolls[idx].keep = false;
+                }
+            }
+            Token::TakeLow => {
+                result.rolls.sort_by(|a, b| b.value.cmp(&a.value));
+                for idx in 0..(result.rolls.len() - result.all_mod as usize) {
+                    result.rolls[idx].keep = false;
+                }
+            }
+            Token::TakeMiddle => {
+                result.rolls.sort_by(|a, b| b.value.cmp(&a.value));
+                if result.rolls.len() > result.all_mod as usize {
+                    let offset = result.all_mod as usize / 2;
+                    for idx in 0..result.rolls.len() {
+                        if idx < offset { 
+                            result.rolls[idx].keep = false;
+                        }
+                        if idx >= (result.all_mod as usize + offset) {
+                            result.rolls[idx].keep = false;
+                        }
+                    }
+                }
+            }
+            _ => ()
+        }
+        
 
         return result;
     }
@@ -270,6 +344,9 @@ impl Roller {
                         }
                         Token::Minus => {
                             roller.all_mod = *n * -1;
+                        }
+                        Token::TakeHigh | Token::TakeMiddle | Token::TakeLow => {
+                            roller.all_mod = *n;
                         }
                         _ => (),
                     },
