@@ -133,3 +133,25 @@ fn tokenize_percent(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, cnt: u3
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn tokenize_simple() {
+        assert_eq!(
+            tokens(&"d4".to_string()),
+            vec![Token::D, Token::Num(4 as i64)]);
+        assert_eq!(
+            tokens(&"4d6".to_string()),
+            vec![Token::Num(4 as i64), Token::D, Token::Num(6 as i64)]);
+    }
+
+    #[test]
+    fn tokenize_with_modifier() {
+        assert_eq!(
+            tokens(&"d8+1".to_string()),
+            vec![Token::D, Token::Num(8 as i64), Token::Plus, Token::Num(1 as i64)]);
+    }
+}
