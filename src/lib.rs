@@ -45,7 +45,7 @@ pub fn chart(roller: &ListRoller, num: usize) {
                 print!("{:>3}. {:>5.*}: ", k, 1, (cnt / num as f64) * 100.0);
                 for _ in 0..=(n / width) { print!("*"); }
                 println!("");
-                cnt -= (*n as f64);
+                cnt -= *n as f64;
             }
             None    => {
                 println!("{:>3}. {:>5.*}:", k, 1, 0.0);
