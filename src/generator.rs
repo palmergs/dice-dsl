@@ -402,3 +402,31 @@ impl ListRoller {
         return results;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn roll_average_seems_ok() {
+        let mut sum = 0i64;
+        for _ in 0..100 { sum += Roll::roll(4, 0, false).total(); }
+        assert!(sum > 200 && sum < 300);
+    }
+
+    #[test]
+    fn list_roller_returns_results() {
+        let (roller, curr_idx) = ListRoller::build(&vec![Token::Num(4), Token::D, Token::Num(4)], 0);
+        assert_eq!(curr_idx, 3);
+
+        let results = roller.roll();
+        assert_eq!(results.len(), 1);
+
+        let two_rolls = vec![Token::Num(2), Token::D, Token::Num(4), Token::Comma, Token::D, Token::Num(6)];
+        let (roller, curr_idx) = ListRoller::build(&two_rolls, 0);
+        assert_eq!(curr_idx, 6);
+
+        let results = roller.roll();
+        assert_eq!(results.len(), 2);
+    }
+}
