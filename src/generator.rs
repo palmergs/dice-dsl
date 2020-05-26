@@ -429,4 +429,23 @@ mod tests {
         let results = roller.roll();
         assert_eq!(results.len(), 2);
     }
+
+    #[test]
+    fn roller_with_explod_modifier() {
+        let (roller, curr_idx) = Roller::build(
+            &vec![
+                Token::Num(2 as i64),
+                Token::D,
+                Token::Num(4 as i64),
+                Token::Explode,
+                Token::Plus,
+                Token::Num(3 as i64)],
+            0);
+        assert_eq!(roller.count, 2);
+        assert_eq!(roller.range, 4);
+        assert_eq!(roller.op, Some(Token::Explode));
+        assert_eq!(roller.die_mod, 0);
+        assert_eq!(roller.all_mod, 3);
+        assert_eq!(curr_idx, 6);
+    }
 }

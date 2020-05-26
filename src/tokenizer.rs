@@ -154,4 +154,11 @@ mod tests {
             tokens(&"d8+1".to_string()),
             vec![Token::D, Token::Num(8 as i64), Token::Plus, Token::Num(1 as i64)]);
     }
+    
+    #[test]
+    fn tokenize_with_explode_modifier() {
+        assert_eq!(
+            tokens(&"2d4!+3".to_string()),
+            vec![Token::Num(2 as i64), Token::D, Token::Num(4 as i64), Token::Explode, Token::Plus, Token::Num(3 as i64)]);
+    }
 }
