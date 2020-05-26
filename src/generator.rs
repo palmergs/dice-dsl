@@ -254,6 +254,19 @@ impl Roller {
         return result;
     }
 
+    // fn start_state(roller: &mut Roller, tokens: &Vec<Token>, idx: usize) -> usize {
+    //     if idx >= tokens.len() {
+    //         return idx;
+    //     }
+
+    //     match tokens[idx] {
+    //         Token::Num(n) => roller.const_or_count(n, tokens, idx + 1),
+    //         Token::Minus => roller.negative_number(tokens, idx + 1),
+    //         Token::D => roller.range(tokens, idx + 1),
+    //         _ => idx
+    //     }
+    // }
+
     fn build_roller(roller: &mut Roller, tokens: &Vec<Token>, idx: usize) -> usize {
         let idx = Roller::build_count(roller, tokens, idx);
         let idx = Roller::build_range(roller, tokens, idx);

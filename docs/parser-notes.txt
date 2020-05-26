@@ -1,0 +1,128 @@
+Parser Notation:
+
+expr := value (mod expr)?
+value := die | simple_die | num
+die := simple_die op
+op := binary_op | unary_op
+binary_op := (^ | ` | ~ | > | < | ! | * | ++ | -- | >> | << ) num
+unare_op := !! | ** | ! | * | ^ | ` | ~ 
+
+
+
+Original Notes (might be out of date):
+
+D d                       to define a die roll
+d2 d4 d6 d8 d10 d12 d20   roll a die
+d00 d100 d%               roll percentile die (2d10)
+2d8 2d12 etc              roll 2 or more dice and return a vector (collapses to sum)
+
+d3,d4,d5                  create a vector of values (collapses to sum)
+3d3,4d4,5d5               create a vector of collapsed values (collapses to sum)
+
+d12+8                     (vector or scalar) collapse to sum and modify by value
+3d8-4
+
+3d8++4                    (vector) roll a dice add/subtract value from each die
+3d6--6
+
+2d8 > 4                   (vector) build vector of 1 for success (>4), 0 for failure (collapse to sum)
+2d8[4]
+
+2d12 < 4                  (vector) build vector of 1 for success (<4), 0 for failure (collapse to sum)
+2d12<4>
+
+2d10 >> 12                (vector or scalar) collapse, 1 for success (>12), 0 for failure
+2d10(12)
+
+2d10{4}                   (scalar) collapse value; build vector of 1 for each multiple of 4 (e.g. 15 = [1, 1, 1])
+2d10{5,4}                 (scalar) collapse value; build vector of 1 for 5, 1 for each multiple of 4 (e.g. 10 = [1, 1]) 
+
+2d10 << 12                (scalar) collapse value; target number of the sum must be 12 or lower (returns 0 or 1 successes)          
+
+4d12!                     (vector) explode (by one die) if all dice are maximum value (returns scalar)
+4d12!!                    (vector) explode (by one die) if all dice are maximum value; continue to explode on maximum value
+2d12!2                    (vector) add 2 if all dice are maximum value
+2d12!d6                   (vector) add d6 if all dice are maximum value
+
+4d12 > 9!                 (vector) explode (by one die) if all dice equal 9 or higher
+4d12 > 9!!                (vector) explode (by one die) if all dice equal 9 or higher; continue to explode on each matching value
+2d12 > 9!2                (vector) add 2 if all dice are 9 or higher
+2d12 > 9!d6               (vector) add d6 if all dice are 9 or higher
+2d12 > 9!!d6              (vector) add d6 if all dice are 9 or higher; continue to explode on each maximum value
+
+
+3d10*                     (vector) roll dice; explode each die that is maximum value; 
+3d10**                    (vector) roll dice; explode each die that is maximum value; continue to explode on maximum values
+2d10*3                    (vector) roll dice; add 3 to each dice that is maximum value
+4d6*d10                   (vector) roll dice; add d10 to each dice that is maximum value
+3d6**d4                   (vector) roll dice; add d4 to each die that is maximum value; continue to explode on maximum values
+
+4d6^3                     (vector) roll dice; keep best 3 rolls; return vector
+4d6`3                     (vector) roll dice; keep worst 3 rolls; return vector
+5d6~3			  (vector) roll dice; keep middle 3 rolls; return vector
+
+operators:
++                         (scalar) treat as integer
++                         (vector) append vectors (or scalar to vector)				
+-                         (scalar) treat as integer
+-			  (vector) append vector (or scalar to vector) with values multiplied by -1 (e.g. 3d6 - 2d6 = [1, 3, 4] - [1, 6] = [1, 3, 4, -1, -6]) 
+|                         (vector) expand shorter vector to length of longer vector with 0s; use OR logic to create a new vector
+&                         (vector) expand shorter vector to length of longer vector with 0s; use AND logic to create a new vector
+ 
+comparison operators:
+vs                        (scalar or successes) return LEFT or RIGHT or TIE indicating the side with the higher value
+vs or tie                 (scalar or successes) return LEFT or RIGHT (TIE goes to the right) 
+tie or vs                 (scalar or successes) return LEFT or RIGHT (TIE goes to the left)
+higher                    (scalar or successes) return LEFT or RIGHT or TIE indicating the side with the higher value
+higher or tie             (scalar or successes) return LEFT or RIGHT (TIE goes to the right) 
+tie or higher             (scalar or successes) return LEFT or RIGHT (TIE goes to the left)
+
+lower                      
+lower|tie
+tie|lower
+
+label:                    defines the following expression with a label; any further reference re-rolls the expression
+
+Precedence (higher to lower):
+d
+/ 
+[] {} () <> | & > < >> << ^ ` ! !! + - -- ++
+,
+label
+tie higher lower
+
+
+Operator Names:
+
+|       threshold operator; for rolls that are equal to or higher than the given value perform an action (default: maximum value of the die, 2d4|4 == 2d4)
+^       truncate high operator; return the highest values; (default: all, 2d6^2 == 2d6)
+`       truncate low operator; return the lowest values; (default: all, 3d8`3 == 3d8)
+
+*       exploding die operator; for each roll that reaches threshold add value (default: adds the result of the die being rolled)
+**      recursive exploding die operator; same as * but if the exploding value is randomly determined then it is rerolled until a non-threshold value is rolled
+
+!       exploding threshold operator; if all dice in the pool reach the threshold add an value (default: add the results of one die from the pool being rolled)
+!!      recursive exploding threshold operator
+
+Y       exploding yahtzee operator: if all dice in the pool are the same value add an additional value (default: add the results of one die from pool rolled again)
+
++ / -   pool modifiers: add or subtract the given value from the sum of the dice rolled
+++ / -- die modifiers: add or subtract the given value from each die that was rolled 
+
+< / <#>  low target: converts the roll into a success if the sum is less than or equal to the given value
+> / [#]  high target: converts the roll into a success if the sum is greater than or equal to the given value
+(#)      target: convert into a success if the sum is greater than or equal to the given value
+(+#)     target range: convert into a success for each multiple of +# 
+(#+#)    target range with base: convert into a success for target #, add a success for each multiple of +#
+
+
+
+
+operations return either numbers or successes.
+
+/ integer division; rounds down
+\ integer division; rounds up
+
+5d6^4[4] -> roll 5d6, keep best 4; every roll greater than or equal to 4 is a success
+4d4^3!!(12) -> roll 4d4, keep best 3; explode each die that comes up 4; success if total is 12 or higher
+6d6!!d4[8] - roll 6d6, explode each die that comes up 6 by adding d4. Each result that comes up 8 or higher is a success. 
