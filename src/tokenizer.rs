@@ -185,13 +185,13 @@ fn tokenize_op2(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, prev: char)
 // additional or arbitrary words (functions or labels, for example) are
 // added.
 fn tokenize_word(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, curr: &Option<char>, prev: char) {
+    let curr = iter.next();
     match curr {
         Some(c) => {
             match c {
                 'i' | 'I' => {
                     if prev == 'd' || prev == 'D' {
-                        let curr = iter.next();
-                        return tokenize_word(tokens, iter, &curr, *c);
+                        return tokenize_word(tokens, iter, &curr, c);
                     }
                 },
                 's' | 'S' => {
@@ -203,8 +203,7 @@ fn tokenize_word(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, curr: &Opt
                 },
                 'd' | 'D' => {
                     if prev == 'a' || prev == 'A' {
-                        let curr = iter.next();
-                        return tokenize_word(tokens, iter, &curr, *c);
+                        return tokenize_word(tokens, iter, &curr, c);
                     }
                 },
                 'v' | 'V' => {
@@ -214,14 +213,13 @@ fn tokenize_word(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, curr: &Opt
                         return tokenize(tokens, iter, &curr);
                     }
                 },
-                _ => (),        
+                _ => println!("Tokenize word char: curr={} prev={}", c, prev),        
             }
         }
-        None => ()
+        None => println!("No work char: prev={}", prev),
     }
 
     if prev == 'd' || prev == 'D' {
-        let curr = iter.next();
         tokens.push(Token::D);
         return tokenize(tokens, iter, &curr);
     }
