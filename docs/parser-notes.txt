@@ -1,11 +1,17 @@
 Parser Notation:
 
-expr := value (mod expr)?
-value := die | simple_die | num
-die := simple_die op
-op := binary_op | unary_op
-binary_op := (^ | ` | ~ | > | < | ! | * | ++ | -- | >> | << ) num
-unare_op := !! | ** | ! | * | ^ | ` | ~ 
+<result>        ::= <scalar> | <result> <scalar_op>
+<scalar>        ::= <vector> | <scalar> <vector_op> 
+<vector>        ::= <value> | <vector> , <value>
+<value>         ::= <seq> | <value> <mod> <num>
+<seq>           ::= <roll> | <seq> <roll_op>
+<roll>          ::= [dD]<num> | <num> <roll> 
+<mod>           ::= + | - 
+<num>           ::= [1-9][0-9]* | %+
+<roll_op>       ::= ! | !! | * | ** | ~ | ` | ^ | DIS | ADV | <roll_op> <num>
+<vector_op>     ::= = <num> | > <num> | < <num> | [ <num> ] | ( <num> ) | { <num> } | { <num> , <num> }
+<scalar_op>     ::= >> <num> | << <num> | Y | / <num> | * <num>
+
 
 
 
