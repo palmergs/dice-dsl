@@ -1,7 +1,7 @@
 mod tokenizer;
 pub use tokenizer::{tokenize, tokens, Token};
 
-// mod generator;
+mod generator;
 // pub use generator::{ListRoller, Result, Roll, Roller};
 
 use std::i64::MAX;
