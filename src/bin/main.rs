@@ -61,31 +61,31 @@ fn main() {
         println!("");
     }
 
-    let (roller, idx) = dice_dsl::ListRoller::build(&tokens, 0);
-    if matches.occurrences_of("generator") > 0 {
-        if idx < tokens.len() {
-            println!("Warning: only {} of {} tokens consumed", idx, tokens.len());
-        }
-        println!("Generator: {:?}", roller);
-    }
+    // let (roller, idx) = dice_dsl::ListRoller::build(&tokens, 0);
+    // if matches.occurrences_of("generator") > 0 {
+    //     if idx < tokens.len() {
+    //         println!("Warning: only {} of {} tokens consumed", idx, tokens.len());
+    //     }
+    //     println!("Generator: {:?}", roller);
+    // }
 
     if matches.occurrences_of("chart") > 0 {
-        dice_dsl::chart(&roller, 100_000);
+        // dice_dsl::chart(&roller, 100_000);
     } else {
-        let results = roller.roll();
-        if matches.occurrences_of("results") > 0 {
-            for r in results.iter() {
-                println!("Result: {}", r);
-            }
-        }
+        // let results = roller.roll();
+        // if matches.occurrences_of("results") > 0 {
+        //     for r in results.iter() {
+        //         println!("Result: {}", r);
+        //     }
+        // }
 
-        if matches.occurrences_of("sum") > 0 {
-            let mut sum: i64 = 0;
-            for r in results.iter() { sum += r.sum(); }
-            println!("{}", sum);
-        } else {
-            for r in results.iter() { println!("{}", r.sum()); }
-        }
+        // if matches.occurrences_of("sum") > 0 {
+        //     let mut sum: i64 = 0;
+        //     for r in results.iter() { sum += r.sum(); }
+        //     println!("{}", sum);
+        // } else {
+        //     for r in results.iter() { println!("{}", r.sum()); }
+        // }
     }
 }
 

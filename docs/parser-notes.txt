@@ -8,9 +8,15 @@ Parser Notation:
 <roll>          ::= [dD]<num> | <num> <roll> 
 <mod>           ::= + | - 
 <num>           ::= [1-9][0-9]* | %+
-<roll_op>       ::= ! | !! | * | ** | ~ | ` | ^ | DIS | ADV | <roll_op> <num>
-<vector_op>     ::= = <num> | > <num> | < <num> | [ <num> ] | ( <num> ) | { <num> } | { <num> , <num> }
-<scalar_op>     ::= >> <num> | << <num> | Y | / <num> | * <num>
+<roll_op>       ::= ! | !! | 
+                    * | ** | 
+                    ++ | -- | 
+                    ~ | ` | ^ | 
+                    DIS | ADV | 
+                    <roll_op> <num>
+<vector_op>     ::= = <num> | > <num> | < <num> | 
+                    [ <num> ] | ( <num> ) | { <num> } | { <num> , <num> }
+<scalar_op>     ::= >> <num> | << <num> | == <num> | Y | / <num> | * <num>
 
 
 
