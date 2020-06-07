@@ -452,7 +452,8 @@ mod tests {
                 Token::Num(4 as i64),
                 Token::Explode,
                 Token::Plus,
-                Token::Num(3 as i64)],
+                Token::Num(3 as i64),
+            ],
             0);
         assert_eq!(roller.count, 2);
         assert_eq!(roller.range, 4);
