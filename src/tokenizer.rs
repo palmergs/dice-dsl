@@ -300,6 +300,10 @@ mod tests {
             vec![Token::D, Token::Num(20 as i64), Token::Advantage, Token::Add, Token::Num(3 as i64)]);
 
         assert_eq!(
+            tokens("d20 ADV 2 + 3"),
+            vec![Token::D, Token::Num(20 as i64), Token::Advantage, Token::Num(2 as i64), Token::Add, Token::Num(3 as i64)]);
+
+        assert_eq!(
             tokens("d20 DIS - 1"),
             vec![Token::D, Token::Num(20 as i64), Token::Disadvantage, Token::Sub, Token::Num(1 as i64)]);
     }
@@ -309,5 +313,40 @@ mod tests {
         assert_eq!(
             tokens("2d4!+3"),
             vec![Token::Num(2 as i64), Token::D, Token::Num(4 as i64), Token::Explode, Token::Add, Token::Num(3 as i64)]);
+        assert_eq!(
+            tokens("2d4!! + 3"),
+            vec![Token::Num(2 as i64), Token::D, Token::Num(4 as i64), Token::ExplodeUntil, Token::Add, Token::Num(3 as i64)]);    
+    }
+
+    #[test]
+    fn tokenize_with_explode_each_modifier() {
+        assert_eq!(
+            tokens("3d6*"),
+            vec![Token::Num(3 as i64), Token::D, Token::Num(6 as i64), Token::ExplodeEach]);
+
+        assert_eq!(
+            tokens("3d6**"),
+            vec![Token::Num(3 as i64), Token::D, Token::Num(6 as i64), Token::ExplodeEachUntil]);            
+    }
+
+    #[test]
+    fn tokenize_commas() {
+        assert_eq!(
+            tokens("1, 2, 3"), 
+            vec![Token::Num(1 as i64), Token::Comma, Token::Num(2 as i64), Token::Comma, Token::Num(3 as i64)]);
+    }
+
+    #[test]
+    fn tokenize_brackets() {
+        assert_eq!(
+            tokens("d10{4,2}"), 
+            vec![Token::D, Token::Num(10 as i64), Token::Start('{'), Token::Num(4 as i64), Token::Comma, Token::Num(2 as i64), Token::End('}')]);
+    }
+
+    #[test]
+    fn tokenize_bad_input() {
+        assert_eq!(tokens("weasel"), vec![]);
+        assert_eq!(tokens("dwight"), vec![Token::D]);
+        assert_eq!(tokens("=test"), vec![Token::TargetEQ]);
     }
 }
