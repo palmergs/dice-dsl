@@ -1,3 +1,5 @@
+use rand::Rng;
+
 use super::Die;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -9,6 +11,14 @@ pub struct Roll {
     pub keep: bool,
     pub crit: bool,
     pub bonus: bool,
+}
+
+impl Roll {
+    pub fn new(range: i64) -> Roll {
+        let mut rng = rand::thread_rng();
+        let roll = rng.gen_range(1, range + 1) as i64;
+        Roll{ range: range, roll: roll, modifier: 0, total: roll, keep: true, crit: false, bonus: false }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

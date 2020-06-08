@@ -1,5 +1,3 @@
-use rand::Rng;
-
 use super::Token;
 use super::{ Roll, Results, RollOp };
 
@@ -47,19 +45,10 @@ impl Die {
         Some((Die{ count: count, range: range, ops: ops }, curr))
     }
 
-    pub fn roll(&self, modifier: i64) -> Results {
-        let mut rng = rand::thread_rng();
+    pub fn roll(&self) -> Results {
         let mut vec: Vec<Roll> = Vec::new();
         for _ in 0..self.count {
-            let roll = rng.gen_range(1, self.range + 1) as i64;
-            vec.push(Roll{ 
-                range: self.range, 
-                roll: roll, 
-                modifier: modifier, 
-                total: roll + modifier, 
-                keep: true,
-                crit: false,
-                bonus: false });
+            vec.push(Roll::new(self.range));
         }
 
         let total = vec.iter().map(|r| r.total).sum();
