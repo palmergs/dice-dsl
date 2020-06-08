@@ -7,32 +7,25 @@ const RADIX: u32 = 10;
 // <vector>        ::= <value> | <vector> , <value>
 // <value>         ::= <seq> | <value> <mod> <num>
 // <seq>           ::= <roll> | <seq> <roll_op>
-// <roll>          ::= [dD]<num> | <num> <roll> 
+// <die>          ::= [dD]<num> | <num> <die> 
 // <mod>           ::= + | - 
 // <num>           ::= [1-9][0-9]* | %+
 // <roll_op>       ::= ! | !! | 
 //                     * | ** | 
-//                     ++ | -- | 
-//                     ~ | ` | ^ | 
+//                     ++ | -- |
+//                     $ | ~ | ` | ^ | 
 //                     DIS | ADV | 
 //                     <roll_op> <num>
 // <vector_op>     ::= = <num> | > <num> | < <num> | 
 //                     [ <num> ] | ( <num> ) | { <num> } | { <num> , <num> }
-// <scalar_op>     ::= >> <num> | << <num> | == <num> | Y | / <num>
+// <scalar_op>     ::= >> <num> | << <num> | == <num> | Y <num>? | / <num>
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Token { 
     NoOp,
     Num(i64), D, Add, Sub, 
-    Explode, ExplodeUntil, 
-    ExplodeEach, ExplodeEachUntil,
-    AddEach, SubEach,
-    TakeMid, TakeLow, TakeHigh,
-    Disadvantage, Advantage,
-    TargetEQ, TargetGT, TargetLT,
-    SumEQ, SumGT, SumLT,
-    Yatz,
-    Divide, Multiply,
+    Op(char),
+    Op2(char),
     Comma,
     Start(char), End(char),
 }
@@ -40,6 +33,42 @@ pub enum Token {
 impl Default for Token {
     fn default() -> Self {
         Token::NoOp
+    }
+}
+
+impl Token {
+    pub fn expect(tokens: &Vec<Token>, idx: usize, expected: &Token, ) -> bool {
+        match tokens.get(idx) {
+            Some(t) => {
+                return t == expected
+            },
+            None => false,
+        }
+    }
+    
+    pub fn expect_num(tokens: &Vec<Token>, idx: usize) -> Option<i64> {
+        match tokens.get(idx) {
+            Some(t) => {
+               return match t {
+                    Token::Num(n) => Some(*n),
+                    _ => None,
+                }
+            },
+            None => None,
+        }
+    }
+    
+    pub fn expect_char(tokens: &Vec<Token>, idx: usize) -> Option<char> {
+        match tokens.get(idx) {
+            Some(t) => {
+                return match t {
+                    Token::Start(c) => Some(*c),
+                    Token::End(c) => Some(*c),
+                    _ => None,
+                }
+            },
+            None => None,
+        }
     }
 }
 
@@ -64,7 +93,7 @@ pub fn tokenize(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, curr: &Opti
             'd' | 'D' => return tokenize_word(tokens, iter, &curr, *c),
             '0'..='9' => return tokenize_num(tokens, iter, c.to_digit(RADIX).unwrap()),
             '%' => return tokenize_percent(tokens, iter, 2),
-            '+' | '-' | '!' | '*' | '>' | '<' | '=' => return tokenize_op2(tokens, iter, *c),
+            '+' | '-' | '!' | '*' | '>' | '<' | '=' | '$' => return tokenize_op2(tokens, iter, *c),
             '~' | '`' | '^' | 'Y' | '/' => return tokenize_op(tokens, iter, *c),
             '(' | '{' | '[' => return tokenize_start(tokens, iter, *c),
             ')' | '}' | ']' => return tokenize_end(tokens, iter, *c),   
@@ -100,84 +129,39 @@ fn tokenize_comma(tokens: &mut Vec<Token>, iter: &mut std::str::Chars) {
 }
 
 fn tokenize_op(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, prev: char) {
-    match prev {
-        '~' => tokens.push(Token::TakeMid),
-        '`' => tokens.push(Token::TakeLow),
-        '^' => tokens.push(Token::TakeHigh),
-        'Y' => tokens.push(Token::Yatz),
-        '/' => tokens.push(Token::Divide),
-        _ => println!("Unexpected op character: prev={}", prev),
-    }
+    tokens.push(Token::Op(prev));
     let curr = iter.next();
     tokenize(tokens, iter, &curr);
 }
 
 fn tokenize_op2(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, prev: char) {
-    let curr = iter.next();
+    let mut curr = iter.next();
     match curr {
         Some(c) => {
-            let mut curr: Option<char> = curr;
-            match prev {
-                '+' => if c == prev {
-                    tokens.push(Token::AddEach);
-                    curr = iter.next();
-                } else {
+            if c == prev {
+                tokens.push(Token::Op2(c));
+                curr = iter.next();
+            } else {
+                if prev == '+' {
                     tokens.push(Token::Add);
-                },
-                '-' => if c == prev {
-                    tokens.push(Token::SubEach);
-                    curr = iter.next();
-                } else {
+                } else if prev == '-' {
                     tokens.push(Token::Sub);
-                },
-                '!' => if c == prev {
-                    tokens.push(Token::ExplodeUntil);
-                    curr = iter.next();
                 } else {
-                    tokens.push(Token::Explode);
-                },
-                '*' => if c == prev {
-                    tokens.push(Token::ExplodeEachUntil);
-                    curr = iter.next();
-                } else {
-                    tokens.push(Token::ExplodeEach);
-                },
-                '>' => if c == prev {
-                    tokens.push(Token::SumGT);
-                    curr = iter.next();
-                } else {
-                    tokens.push(Token::TargetGT);
-                },
-                '<' => if c == prev {
-                    tokens.push(Token::SumLT);
-                    curr = iter.next();
-                } else {
-                    tokens.push(Token::TargetLT);
-                },
-                '=' => if c == prev {
-                    tokens.push(Token::SumEQ);
-                    curr = iter.next();
-                } else {
-                    tokens.push(Token::TargetEQ);
-                },
-                _ => (),
+                    tokens.push(Token::Op(prev));
+                }
             }
-            return tokenize(tokens, iter, &curr);
         },
         None => {
-            match prev {
-                '+' => tokens.push(Token::Add),
-                '-' => tokens.push(Token::Sub),
-                '!' => tokens.push(Token::Explode),
-                '*' => tokens.push(Token::ExplodeEach),
-                '>' => tokens.push(Token::TargetGT),
-                '<' => tokens.push(Token::TargetLT),
-                '=' => tokens.push(Token::TargetEQ),
-                _ => (),
+            if prev == '+' {
+                tokens.push(Token::Add);
+            } else if prev == '-' {
+                tokens.push(Token::Sub);
+            } else {
+                tokens.push(Token::Op(prev));
             }
-            return tokenize(tokens, iter, &curr);
         }
     }
+    tokenize(tokens, iter, &curr)
 }
 
 // Currently there's only three discrete words: DIS (for disadvantage),
@@ -197,7 +181,7 @@ fn tokenize_word(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, curr: &Opt
                 's' | 'S' => {
                     if prev == 'i' || prev == 'I' {
                         let curr = iter.next();
-                        tokens.push(Token::Disadvantage);
+                        tokens.push(Token::Op('D'));
                         return tokenize(tokens, iter, &curr);
                     }
                 },
@@ -209,7 +193,7 @@ fn tokenize_word(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, curr: &Opt
                 'v' | 'V' => {
                     if prev == 'd' || prev == 'D' {
                         let curr = iter.next();
-                        tokens.push(Token::Advantage);
+                        tokens.push(Token::Op('A'));
                         return tokenize(tokens, iter, &curr);
                     }
                 },
@@ -297,36 +281,36 @@ mod tests {
     fn tokenize_with_function() {
         assert_eq!(
             tokens("d20 ADV + 3"),
-            vec![Token::D, Token::Num(20 as i64), Token::Advantage, Token::Add, Token::Num(3 as i64)]);
+            vec![Token::D, Token::Num(20 as i64), Token::Op('A'), Token::Add, Token::Num(3 as i64)]);
 
         assert_eq!(
             tokens("d20 ADV 2 + 3"),
-            vec![Token::D, Token::Num(20 as i64), Token::Advantage, Token::Num(2 as i64), Token::Add, Token::Num(3 as i64)]);
+            vec![Token::D, Token::Num(20 as i64), Token::Op('A'), Token::Num(2 as i64), Token::Add, Token::Num(3 as i64)]);
 
         assert_eq!(
             tokens("d20 DIS - 1"),
-            vec![Token::D, Token::Num(20 as i64), Token::Disadvantage, Token::Sub, Token::Num(1 as i64)]);
+            vec![Token::D, Token::Num(20 as i64), Token::Op('D'), Token::Sub, Token::Num(1 as i64)]);
     }
     
     #[test]
     fn tokenize_with_explode_modifier() {
         assert_eq!(
             tokens("2d4!+3"),
-            vec![Token::Num(2 as i64), Token::D, Token::Num(4 as i64), Token::Explode, Token::Add, Token::Num(3 as i64)]);
+            vec![Token::Num(2 as i64), Token::D, Token::Num(4 as i64), Token::Op('!'), Token::Add, Token::Num(3 as i64)]);
         assert_eq!(
             tokens("2d4!! + 3"),
-            vec![Token::Num(2 as i64), Token::D, Token::Num(4 as i64), Token::ExplodeUntil, Token::Add, Token::Num(3 as i64)]);    
+            vec![Token::Num(2 as i64), Token::D, Token::Num(4 as i64), Token::Op2('!'), Token::Add, Token::Num(3 as i64)]);    
     }
 
     #[test]
     fn tokenize_with_explode_each_modifier() {
         assert_eq!(
             tokens("3d6*"),
-            vec![Token::Num(3 as i64), Token::D, Token::Num(6 as i64), Token::ExplodeEach]);
+            vec![Token::Num(3 as i64), Token::D, Token::Num(6 as i64), Token::Op('*')]);
 
         assert_eq!(
             tokens("3d6**"),
-            vec![Token::Num(3 as i64), Token::D, Token::Num(6 as i64), Token::ExplodeEachUntil]);            
+            vec![Token::Num(3 as i64), Token::D, Token::Num(6 as i64), Token::Op2('*')]);            
     }
 
     #[test]
@@ -347,6 +331,6 @@ mod tests {
     fn tokenize_bad_input() {
         assert_eq!(tokens("weasel"), vec![]);
         assert_eq!(tokens("dwight"), vec![Token::D]);
-        assert_eq!(tokens("=test"), vec![Token::TargetEQ]);
+        assert_eq!(tokens("=test"), vec![Token::Op('=')]);
     }
 }

@@ -1,8 +1,14 @@
 mod tokenizer;
 pub use tokenizer::{tokenize, tokens, Token};
 
+mod ops;
+pub use ops::{ RollOp };
+
 mod generator;
-// pub use generator::{ListRoller, Result, Roll, Roller};
+pub use generator::{ Die };
+
+mod result;
+pub use result::{ Roll, Results };
 
 use std::i64::MAX;
 use std::collections::BTreeMap;
