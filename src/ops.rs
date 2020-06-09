@@ -59,6 +59,8 @@ impl RollOp {
         match self {
             RollOp::AddEach(n) => return RollOp::add_each(results, *n),
             RollOp::SubEach(n) => return RollOp::add_each(results, (*n) * -1),
+            RollOp::Advantage(n) => return RollOp::advantage(results, *n),
+            RollOp::Disadvantage(n) => return RollOp::disadvantage(results, *n),
             RollOp::Crit(n) => return RollOp::apply_crit(results, *n),
             _ => (),
         }
@@ -92,6 +94,8 @@ impl RollOp {
         Results{ rolls: rolls, ..*results }
     }
 
+    // Advantage: roll `amt` additional dice for each die in the current
+    // results keeping the highest alternate roll.
     fn advantage(results: &Results, amt: i64) -> Results {
         let mut rolls: Vec<Roll> = Vec::new();
         for r in results.rolls.iter() {
@@ -115,9 +119,40 @@ impl RollOp {
                 }
             }
         }
-        // TODO: recalculate totals based on kept rolls
-        Results{ rolls: rolls, ..*results }
+        
+        let total: i64 = rolls.iter().filter(|r| r.keep ).map(|r| r.total).sum();
+        Results{ rolls: rolls, total: total }
     }
+
+    // Disadvantage: same as advantage except the lowest alternate roll is
+    // kept.
+    fn disadvantage(results: &Results, amt: i64) -> Results {
+        let mut rolls: Vec<Roll> = Vec::new();
+        for r in results.rolls.iter() {
+            if r.keep {
+                let mut tmp: Vec<Roll> = Vec::new();
+                let mut lo = 0;
+                tmp.push(r.clone());
+                for idx in 1..=amt as usize {
+                    let mut reroll = Roll::new(r.range, r.modifier);
+                    if reroll.roll < tmp[lo].roll  {
+                        tmp[lo].keep = false;
+                        lo = idx;
+                    } else {
+                        reroll.keep = false;
+                    }
+                    tmp.push(reroll);
+                }
+
+                for r2 in tmp {
+                    rolls.push(r2);
+                }
+            }
+        }
+        
+        let total: i64 = rolls.iter().filter(|r| r.keep ).map(|r| r.total).sum();
+        Results{ rolls: rolls, total: total }
+    }    
 }
 
 #[cfg(test)]
@@ -152,10 +187,21 @@ mod tests {
             assert!(new_res.rolls[0].roll >= new_res.rolls[1].roll);
             assert!(new_res.rolls[0].keep);
             assert!(!new_res.rolls[1].keep);
+            assert_eq!(new_res.total, new_res.rolls[0].total);
         } else {
             assert!(new_res.rolls[0].roll <= new_res.rolls[1].roll);
             assert!(new_res.rolls[1].keep);
             assert!(!new_res.rolls[0].keep);
+            assert_eq!(new_res.total, new_res.rolls[1].total);
         }
+    }
+
+    #[test]
+    fn disadvantage() {
+        let results = Die{ count: 1, range: 20, ops: vec![] }.roll();
+        assert_eq!(results.rolls.len(), 1);
+        assert!(results.total > 0);
+        let new_res = RollOp::disadvantage(&results, 1);
+        assert!(results.total >= new_res.total);
     }
 }
