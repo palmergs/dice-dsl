@@ -91,6 +91,30 @@ impl RollOp {
         }
         Results{ rolls: rolls, ..*results }
     }
+
+    fn advantage(results: &Results, amt: i64) -> Results {
+        let mut rolls: Vec<Roll> = Vec::new();
+        for r in results.rolls.iter() {
+            if r.keep {
+                let mut tmp: Vec<Roll> = Vec::new();
+                let mut high = 0;
+                tmp.push(r.clone());
+                for idx in 1..=amt as usize {
+                    let mut reroll = Roll::new(r.range, r.modifier);
+                    if reroll.roll > tmp[high].roll  {
+                        tmp[high].keep = false;
+                        high = idx;
+                    } else {
+                        reroll.keep = false;
+                    }
+                    tmp.push(reroll);
+                }
+
+            }
+        }
+        // TODO: recalculate totals based on kept rolls
+        Results{ rolls: rolls, ..*results }
+    }
 }
 
 #[cfg(test)]
@@ -112,5 +136,11 @@ mod tests {
         for r in results.rolls { 
             assert_eq!(r.modifier, 5);
         }
+    }
+
+    #[test]
+    fn advantage() {
+        let results = Die{ count: 1, range: 20, ops: vec![] }.toll();
+        let total = results.total;
     }
 }

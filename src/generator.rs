@@ -48,7 +48,7 @@ impl Die {
     pub fn roll(&self) -> Results {
         let mut vec: Vec<Roll> = Vec::new();
         for _ in 0..self.count {
-            vec.push(Roll::new(self.range));
+            vec.push(Roll::new(self.range, 0));
         }
 
         let total = vec.iter().map(|r| r.total).sum();

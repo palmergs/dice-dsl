@@ -14,10 +14,10 @@ pub struct Roll {
 }
 
 impl Roll {
-    pub fn new(range: i64) -> Roll {
+    pub fn new(range: i64, modifier: i64) -> Roll {
         let mut rng = rand::thread_rng();
         let roll = rng.gen_range(1, range + 1) as i64;
-        Roll{ range: range, roll: roll, modifier: 0, total: roll, keep: true, crit: false, bonus: false }
+        Roll{ range: range, roll: roll, modifier: modifier, total: roll + modifier, keep: true, crit: false, bonus: false }
     }
 }
 
