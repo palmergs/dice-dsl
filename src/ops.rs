@@ -110,6 +110,9 @@ impl RollOp {
                     tmp.push(reroll);
                 }
 
+                for r2 in tmp {
+                    rolls.push(r2);
+                }
             }
         }
         // TODO: recalculate totals based on kept rolls
@@ -140,7 +143,19 @@ mod tests {
 
     #[test]
     fn advantage() {
-        let results = Die{ count: 1, range: 20, ops: vec![] }.toll();
-        let total = results.total;
+        let results = Die{ count: 1, range: 20, ops: vec![] }.roll();
+        assert_eq!(results.rolls.len(), 1);
+        let new_res = RollOp::advantage(&results, 1);
+        assert_eq!(new_res.rolls.len(), 2);
+        assert!(results.total <= new_res.total);
+        if new_res.rolls[0].keep {
+            assert!(new_res.rolls[0].roll >= new_res.rolls[1].roll);
+            assert!(new_res.rolls[0].keep);
+            assert!(!new_res.rolls[1].keep);
+        } else {
+            assert!(new_res.rolls[0].roll <= new_res.rolls[1].roll);
+            assert!(new_res.rolls[1].keep);
+            assert!(!new_res.rolls[0].keep);
+        }
     }
 }
