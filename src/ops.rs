@@ -1,4 +1,6 @@
-use super::{ Die, Roll, Token, Results };
+use std::fmt;
+
+use super::{ Dice, Roll, Token, Results };
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum RollOp {
@@ -69,7 +71,6 @@ impl RollOp {
             RollOp::Advantage(n) => return RollOp::advantage(results, *n),
             RollOp::Disadvantage(n) => return RollOp::disadvantage(results, *n),
             RollOp::Crit(n) => return RollOp::apply_crit(results, *n),
-            _ => (),
         }
     }
 
@@ -275,6 +276,73 @@ impl RollOp {
     }    
 }
 
+impl fmt::Display for RollOp {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            RollOp::Explode(n) => if *n < 0 {
+                    write!(f, "!")
+                } else {
+                    write!(f, "!{}", n)
+                },
+            RollOp::ExplodeUntil(n) => if *n < 0 {
+                    write!(f, "!!")
+                } else {
+                    write!(f, "!!{}", n)
+                },
+            RollOp::ExplodeEach(n) => if *n < 0 {
+                    write!(f, "*")
+                } else {
+                    write!(f, "*{}", n)
+                },
+            RollOp::ExplodeEachUntil(n) => if *n < 0 {
+                    write!(f, "**")
+                } else {
+                    write!(f, "**{}", n)
+                },
+            RollOp::TakeHigh(n) => if *n < 0 {
+                    write!(f, "^")
+                } else {
+                    write!(f, "^{}", n)
+                },
+            RollOp::TakeLow(n) => if *n < 0 {
+                    write!(f, "`")
+                } else {
+                    write!(f, "`{}", n)
+                },
+            RollOp::TakeMid(n) => if *n < 0 {
+                    write!(f, "~")
+                } else {
+                    write!(f, "~{}", n)
+                },
+            RollOp::AddEach(n) => if *n < 0 {
+                    write!(f, "++")
+                } else {
+                    write!(f, "++{}", n)
+                },
+            RollOp::SubEach(n) => if *n < 0 {
+                    write!(f, "--")
+                } else {
+                    write!(f, "--{}", n)
+                },
+            RollOp::Advantage(n) => if *n < 0 {
+                    write!(f, "ADV")
+                } else {
+                    write!(f, "ADV {}", n)
+                },
+            RollOp::Disadvantage(n) => if *n < 0 {
+                    write!(f, "DIS")
+                } else {
+                    write!(f, "DIS {}", n)
+                },
+            RollOp::Crit(n) => if *n < 0 {
+                    write!(f, "$")
+                } else {
+                    write!(f, "${}", n)
+                },
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -287,7 +355,7 @@ mod tests {
 
     #[test]
     fn add_each() {
-        let mut results = Die{ count: 2, range: 8, ops: vec![] }.roll();
+        let mut results = Dice{ count: 2, range: 8, ops: vec![] }.roll();
         let total = results.total;
         RollOp::add_each(&mut results, 5);
         assert_eq!(results.total, total + 10);
@@ -298,7 +366,7 @@ mod tests {
 
     #[test]
     fn advantage() {
-        let mut results = Die{ count: 1, range: 20, ops: vec![] }.roll();
+        let mut results = Dice{ count: 1, range: 20, ops: vec![] }.roll();
         let old_total = results.total;
         assert_eq!(results.rolls.len(), 1);
 
@@ -320,7 +388,7 @@ mod tests {
 
     #[test]
     fn disadvantage() {
-        let mut results = Die{ count: 1, range: 20, ops: vec![] }.roll();
+        let mut results = Dice{ count: 1, range: 20, ops: vec![] }.roll();
         assert_eq!(results.rolls.len(), 1);
 
         let old_total = results.total;

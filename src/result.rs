@@ -1,6 +1,5 @@
 use rand::Rng;
-
-use super::Die;
+use std::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Roll {
@@ -18,6 +17,31 @@ impl Roll {
         let mut rng = rand::thread_rng();
         let roll = rng.gen_range(1, range + 1) as i64;
         Roll{ range: range, roll: roll, modifier: modifier, total: roll + modifier, keep: true, crit: false, bonus: false }
+    }
+}
+
+impl fmt::Display for Roll {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "d{}", self.range)?;
+        if self.modifier > 0 {
+            write!(f, "+{}", self.modifier)?;
+        } else if self.modifier < 0 {
+            write!(f, "{}", self.modifier)?;
+        }
+
+        if self.bonus {
+            write!(f, " BNS")?;
+        }
+
+        if self.crit {
+            write!(f, " CRIT")?;
+        }
+
+        if self.keep {
+            write!(f, " [{}]", self.total)
+        } else {
+            write!(f, " [0]")
+        }
     }
 }
 
@@ -51,5 +75,18 @@ impl Results {
 
     pub fn bonus(&self) -> usize {
         self.rolls.iter().filter(|r| r.keep && r.bonus ).map(|_| 1 ).sum()
+    }
+}
+
+impl fmt::Display for Results {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for idx in 0..self.rolls.len() {
+            if idx > 0 {
+                write!(f, " + ")?;
+            }
+            write!(f, "{}", self.rolls[idx])?;
+        }
+
+        write!(f, " = {}", self.total)
     }
 }

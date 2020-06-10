@@ -89,8 +89,8 @@ pub fn tokens(input: &str) -> Vec<Token> {
 pub fn tokenize(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, curr: &Option<char>) {
     match curr {
         Some(c) => match c {
-            'a' | 'A' => return tokenize_word(tokens, iter, &curr, *c),
-            'd' | 'D' => return tokenize_word(tokens, iter, &curr, *c),
+            'a' | 'A' => return tokenize_word(tokens, iter, *c),
+            'd' | 'D' => return tokenize_word(tokens, iter, *c),
             '0'..='9' => return tokenize_num(tokens, iter, c.to_digit(RADIX).unwrap()),
             '%' => return tokenize_percent(tokens, iter, 2),
             '+' | '-' | '!' | '*' | '>' | '<' | '=' | '$' => return tokenize_op2(tokens, iter, *c),
@@ -168,14 +168,14 @@ fn tokenize_op2(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, prev: char)
 // ADV (for advantage) and D. This will need to be made more complex if 
 // additional or arbitrary words (functions or labels, for example) are
 // added.
-fn tokenize_word(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, curr: &Option<char>, prev: char) {
+fn tokenize_word(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, prev: char) {
     let curr = iter.next();
     match curr {
         Some(c) => {
             match c {
                 'i' | 'I' => {
                     if prev == 'd' || prev == 'D' {
-                        return tokenize_word(tokens, iter, &curr, c);
+                        return tokenize_word(tokens, iter, c);
                     }
                 },
                 's' | 'S' => {
@@ -187,7 +187,7 @@ fn tokenize_word(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, curr: &Opt
                 },
                 'd' | 'D' => {
                     if prev == 'a' || prev == 'A' {
-                        return tokenize_word(tokens, iter, &curr, c);
+                        return tokenize_word(tokens, iter, c);
                     }
                 },
                 'v' | 'V' => {

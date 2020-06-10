@@ -1,15 +1,17 @@
+use std::fmt;
+
 use super::Token;
 use super::{ Roll, Results, RollOp };
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Die {
+pub struct Dice {
     pub count: i64,
     pub range: i64,
     pub ops: Vec<RollOp>,
 }
 
-impl Die {
-    pub fn build(tokens: &Vec<Token>, idx: usize) -> Option<(Die, usize)> {
+impl Dice {
+    pub fn build(tokens: &Vec<Token>, idx: usize) -> Option<(Dice, usize)> {
         let mut curr = idx;
         let count = match Token::expect_num(tokens, curr) {
             Some(n) => {
@@ -42,7 +44,7 @@ impl Die {
             found_op = RollOp::build(tokens, curr);
         }
 
-        Some((Die{ count: count, range: range, ops: ops }, curr))
+        Some((Dice{ count: count, range: range, ops: ops }, curr))
     }
 
     pub fn roll(&self) -> Results {
@@ -61,6 +63,21 @@ impl Die {
     }
 }
 
+impl fmt::Display for Dice {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if self.count > 0 {
+            write!(f, "{}", self.count)?;
+        }
+
+        write!(f, "d{}", self.range)?;
+        for op in self.ops.iter() {
+            write!(f, "{}", op)?;
+        }
+
+        write!(f, "")
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -68,13 +85,13 @@ mod tests {
     #[test]
     fn build_die() {
         assert_eq!(
-            Die::build(&vec![Token::D, Token::Num(4 as i64)], 0),
-            Some((Die{ count: 1, range: 4, ops: vec![] }, 2))
+            Dice::build(&vec![Token::D, Token::Num(4 as i64)], 0),
+            Some((Dice{ count: 1, range: 4, ops: vec![] }, 2))
         );
 
         assert_eq!(
-            Die::build(&vec![Token::Num(3 as i64), Token::D, Token::Num(6 as i64)], 0),
-            Some((Die{ count: 3, range: 6, ops: vec![] }, 3))
+            Dice::build(&vec![Token::Num(3 as i64), Token::D, Token::Num(6 as i64)], 0),
+            Some((Dice{ count: 3, range: 6, ops: vec![] }, 3))
         );        
     }
 }
