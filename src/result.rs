@@ -26,3 +26,30 @@ pub struct Results {
     pub rolls: Vec<Roll>,
     pub total: i64,
 }
+
+impl Results {
+    pub fn total(rolls: &Vec<Roll>) -> i64 {
+        rolls.iter().filter(|r| r.keep ).map(|r| r.total).sum()
+    }
+
+    pub fn calc_total(&mut self) -> i64 {
+        self.total = Results::total(&self.rolls);
+        self.total
+    }
+
+    pub fn keep(&self) -> usize {
+        self.rolls.iter().filter(|r| r.keep ).map(|_| 1 ).sum()
+    }
+
+    pub fn discard(&self) -> usize {
+        self.rolls.iter().filter(|r| !r.keep ).map(|_| 1 ).sum()
+    }
+
+    pub fn crit(&self) -> usize {
+        self.rolls.iter().filter(|r| r.keep && r.crit ).map(|_| 1 ).sum()
+    }
+
+    pub fn bonus(&self) -> usize {
+        self.rolls.iter().filter(|r| r.keep && r.bonus ).map(|_| 1 ).sum()
+    }
+}
