@@ -55,7 +55,7 @@ impl RollOp {
         }
     }
 
-    pub fn apply(&self, results: &Results) -> Results {
+    pub fn apply(&self, results: &mut Results) {
         match self {
             RollOp::Explode(n) => return RollOp::explode(results, *n, false),
             RollOp::ExplodeUntil(n) => return RollOp::explode(results, *n, true),
@@ -71,10 +71,9 @@ impl RollOp {
             RollOp::Crit(n) => return RollOp::apply_crit(results, *n),
             _ => (),
         }
-        results.clone()
     }
 
-    fn take_end(results: &Results, amt: i64, low: bool) -> Results {
+    fn take_end(results: &mut Results, amt: i64, low: bool) {
         let len: usize = results.rolls.len();
         let max: usize = if amt < 0 {
             len + amt as usize
@@ -82,21 +81,19 @@ impl RollOp {
             amt as usize
         };
 
-        let mut new_results = results.clone();
-        new_results.rolls.sort_by(|a, b| b.total.cmp(&a.total));
+        results.rolls.sort_by(|a, b| b.total.cmp(&a.total));
         for idx in 0..len {
             if low {
-                new_results.rolls[idx].keep = idx < max;
+                results.rolls[idx].keep = idx < max;
             } else {
-                new_results.rolls[idx].keep = idx >= (len - max);
+                results.rolls[idx].keep = idx >= (len - max);
             }
         }
 
-        new_results.calc_total();
-        new_results
+        results.calc_total();
     }
 
-    fn take_mid(results: &Results, amt: i64) -> Results {
+    fn take_mid(results: &mut Results, amt: i64) {
         let len: usize = results.rolls.len();
         let max: usize = if amt < 0 {
             len + amt as usize
@@ -104,26 +101,24 @@ impl RollOp {
             amt as usize
         };
 
-        let mut new_results = results.clone();
-        new_results.rolls.sort_by(|a, b| b.total.cmp(&a.total));
+        results.rolls.sort_by(|a, b| b.total.cmp(&a.total));
         let skip_start = (len - max) / 2;
         let skip_end = skip_start + max;
         for idx in 0..len {
-            new_results.rolls[idx].keep = idx >= skip_start && idx < skip_end;
+            results.rolls[idx].keep = idx >= skip_start && idx < skip_end;
         }
 
-        new_results.calc_total();
-        new_results
+        results.calc_total();
     }
 
-    fn explode(results: &Results, amt: i64, until: bool) -> Results {
+    fn explode(results: &mut Results, amt: i64, until: bool) {
         let mut rolls: Vec<Roll> = Vec::new();
         let mut range = 0;
         for r in results.rolls.iter() {
             rolls.push(r.clone());
             if r.keep {
                 if (amt < 0 && r.roll <= r.range + amt) || (r.roll < amt) {
-                    return results.clone();
+                    return
                 }
 
                 // NOTE: if the source dice are not all the same, the last
@@ -141,11 +136,11 @@ impl RollOp {
             }
         }
 
-        let total: i64 = rolls.iter().filter(|r| r.keep ).map(|r| r.total).sum();
-        Results{ rolls: rolls, total: total }
+        results.rolls = rolls;
+        results.calc_total();
     }
 
-    fn explode_each(results: &Results, amt: i64, until: bool) -> Results {
+    fn explode_each(results: &mut Results, amt: i64, until: bool) {
         let mut rolls: Vec<Roll> = Vec::new();
         for r in results.rolls.iter() {
             rolls.push(r.clone());
@@ -163,12 +158,11 @@ impl RollOp {
             }
         }
 
-        let total: i64 = rolls.iter().filter(|r| r.keep ).map(|r| r.total).sum();
-        Results{ rolls: rolls, total: total }
+        results.rolls = rolls;
+        results.calc_total();
     }
 
-    fn add_each(results: &Results, amt: i64) -> Results {
-        let mut total = results.total;
+    fn add_each(results: &mut Results, amt: i64) {
         let mut rolls: Vec<Roll> = Vec::new();
         let amt = if amt < 0 {
             1
@@ -182,27 +176,31 @@ impl RollOp {
                     modifier: r.modifier + amt, 
                     total: r.total + amt,
                     ..*r });
-                total = total + amt;
+            } else {
+                rolls.push(r.clone());
             }
         }
-        Results{ rolls: rolls, total: total, }
+       
+        results.rolls = rolls;
+        results.calc_total();
     }
 
-    fn apply_crit(results: &Results, amt: i64) -> Results {
+    // Apply Crit is the simplest operator; iterate through the rolls
+    // and mark all those that are above a thresold as "critical"
+    fn apply_crit(results: &mut Results, amt: i64) {
         let mut rolls: Vec<Roll> = Vec::new();
         for r in results.rolls.iter() {
             if amt < 0 {
-                rolls.push(Roll{ crit: r.roll > r.roll + amt, ..*r })
+                rolls.push(Roll{ crit: r.keep && r.roll > r.roll + amt, ..*r })
             } else {
-                rolls.push(Roll{ crit: r.roll >= amt, ..*r })
+                rolls.push(Roll{ crit: r.keep && r.roll >= amt, ..*r })
             }
         }
-        Results{ rolls: rolls, ..*results }
     }
 
     // Advantage: roll `amt` additional dice for each die in the current
     // results keeping the highest alternate roll.
-    fn advantage(results: &Results, amt: i64) -> Results {
+    fn advantage(results: &mut Results, amt: i64) {
         let mut rolls: Vec<Roll> = Vec::new();
         let amt = if amt < 0 {
             1
@@ -229,16 +227,18 @@ impl RollOp {
                 for r2 in tmp {
                     rolls.push(r2);
                 }
+            } else {
+                rolls.push(r.clone());
             }
         }
         
-        let total: i64 = rolls.iter().filter(|r| r.keep ).map(|r| r.total).sum();
-        Results{ rolls: rolls, total: total }
+        results.rolls = rolls;
+        results.calc_total();
     }
 
     // Disadvantage: same as advantage except the lowest alternate roll is
     // kept.
-    fn disadvantage(results: &Results, amt: i64) -> Results {
+    fn disadvantage(results: &mut Results, amt: i64) {
         let mut rolls: Vec<Roll> = Vec::new();
         let amt = if amt < 0 {
             1
@@ -265,11 +265,13 @@ impl RollOp {
                 for r2 in tmp {
                     rolls.push(r2);
                 }
+            } else {
+                rolls.push(r.clone());
             }
         }
         
-        let total: i64 = rolls.iter().filter(|r| r.keep ).map(|r| r.total).sum();
-        Results{ rolls: rolls, total: total }
+        results.rolls = rolls;
+        results.calc_total();
     }    
 }
 
@@ -285,9 +287,9 @@ mod tests {
 
     #[test]
     fn add_each() {
-        let results = Die{ count: 2, range: 8, ops: vec![] }.roll();
+        let mut results = Die{ count: 2, range: 8, ops: vec![] }.roll();
         let total = results.total;
-        let results = RollOp::add_each(&results, 5);
+        RollOp::add_each(&mut results, 5);
         assert_eq!(results.total, total + 10);
         for r in results.rolls { 
             assert_eq!(r.modifier, 5);
@@ -296,30 +298,35 @@ mod tests {
 
     #[test]
     fn advantage() {
-        let results = Die{ count: 1, range: 20, ops: vec![] }.roll();
+        let mut results = Die{ count: 1, range: 20, ops: vec![] }.roll();
+        let old_total = results.total;
         assert_eq!(results.rolls.len(), 1);
-        let new_res = RollOp::advantage(&results, 1);
-        assert_eq!(new_res.rolls.len(), 2);
-        assert!(results.total <= new_res.total);
-        if new_res.rolls[0].keep {
-            assert!(new_res.rolls[0].roll >= new_res.rolls[1].roll);
-            assert!(new_res.rolls[0].keep);
-            assert!(!new_res.rolls[1].keep);
-            assert_eq!(new_res.total, new_res.rolls[0].total);
+
+        RollOp::advantage(&mut results, 1);
+        assert_eq!(results.rolls.len(), 2);
+        assert!(results.total >= old_total);
+        if results.rolls[0].keep {
+            assert!(results.rolls[0].roll >= results.rolls[1].roll);
+            assert!(results.rolls[0].keep);
+            assert!(!results.rolls[1].keep);
+            assert_eq!(results.total, results.rolls[0].total);
         } else {
-            assert!(new_res.rolls[0].roll <= new_res.rolls[1].roll);
-            assert!(new_res.rolls[1].keep);
-            assert!(!new_res.rolls[0].keep);
-            assert_eq!(new_res.total, new_res.rolls[1].total);
+            assert!(results.rolls[0].roll <= results.rolls[1].roll);
+            assert!(results.rolls[1].keep);
+            assert!(!results.rolls[0].keep);
+            assert_eq!(results.total, results.rolls[1].total);
         }
     }
 
     #[test]
     fn disadvantage() {
-        let results = Die{ count: 1, range: 20, ops: vec![] }.roll();
+        let mut results = Die{ count: 1, range: 20, ops: vec![] }.roll();
         assert_eq!(results.rolls.len(), 1);
-        assert!(results.total > 0);
-        let new_res = RollOp::disadvantage(&results, 1);
-        assert!(results.total >= new_res.total);
+
+        let old_total = results.total;
+        assert!(old_total > 0);
+
+        RollOp::disadvantage(&mut results, 1);
+        assert!(results.total >= old_total);
     }
 }

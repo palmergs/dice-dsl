@@ -54,7 +54,7 @@ impl Die {
         let total = vec.iter().map(|r| r.total).sum();
         let mut results = Results{ rolls: vec, total: total };
         for op in self.ops.iter() {
-            results = op.apply(&results);
+            op.apply(&mut results);
         }
         
         results
