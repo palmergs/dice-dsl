@@ -197,7 +197,7 @@ fn tokenize_word(tokens: &mut Vec<Token>, iter: &mut std::str::Chars, prev: char
                         return tokenize(tokens, iter, &curr);
                     }
                 },
-                _ => println!("Tokenize word char: curr={} prev={}", c, prev),        
+                _ => (),        
             }
         }
         None => println!("No work char: prev={}", prev),

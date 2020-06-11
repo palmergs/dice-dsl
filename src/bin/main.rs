@@ -34,11 +34,6 @@ fn main() {
                 .help("Read the generator tokens from a file"),
         )
         .arg(
-            Arg::with_name("sum")
-                .long("sum")
-                .help("Sum all results values into a single value")
-        )
-        .arg(
             Arg::with_name("chart")
                 .long("chart")
                 .help("Display the results as a chart"),
@@ -78,15 +73,10 @@ fn main() {
                     for r in results.rolls.iter() {
                         println!("Result: {}", r);
                     }
+                    println!("Modifier: {}", results.modifier);
                 }
         
-                if matches.occurrences_of("sum") > 0 {
-                    println!("{}", results.total);
-                } else {
-                    for r in results.rolls.iter() { 
-                        println!("{}", r.total); 
-                    }
-                }
+                println!("{}", results.total());
             }
         },
         None => (),
@@ -100,7 +90,7 @@ fn input_string(matcher: &clap::ArgMatches) -> String {
                 Ok(contents) => { 
                     return contents.trim().replace("\n", ",") 
                 },
-                Err(_)       => panic!("file {} could not be read", file)
+                Err(_) => panic!("file {} could not be read", file)
             }
         }
         None        => {
@@ -110,7 +100,7 @@ fn input_string(matcher: &clap::ArgMatches) -> String {
                     for v in values { tmp.push(v.to_string()); }
                     return tmp.join(",")
                 }
-                None         => {
+                None => {
                     let mut buffer = String::new();
                     match io::stdin().read_to_string(&mut buffer) {
                         Ok(_) => return buffer,

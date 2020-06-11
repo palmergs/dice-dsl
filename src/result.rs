@@ -40,7 +40,7 @@ impl fmt::Display for Roll {
         if self.keep {
             write!(f, " [{}]", self.total)
         } else {
-            write!(f, " [0]")
+            write!(f, " ({})", self.total)
         }
     }
 }
@@ -48,17 +48,16 @@ impl fmt::Display for Roll {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Results {
     pub rolls: Vec<Roll>,
-    pub total: i64,
+    pub modifier: i64,
 }
 
 impl Results {
-    pub fn total(rolls: &Vec<Roll>) -> i64 {
+    pub fn calc_total(rolls: &Vec<Roll>) -> i64 {
         rolls.iter().filter(|r| r.keep ).map(|r| r.total).sum()
     }
 
-    pub fn calc_total(&mut self) -> i64 {
-        self.total = Results::total(&self.rolls);
-        self.total
+    pub fn total(&self) -> i64 {
+        Results::calc_total(&self.rolls) + self.modifier
     }
 
     pub fn keep(&self) -> usize {
@@ -87,6 +86,12 @@ impl fmt::Display for Results {
             write!(f, "{}", self.rolls[idx])?;
         }
 
-        write!(f, " = {}", self.total)
+        if self.modifier > 0 {
+            write!(f, " + {}", self.modifier)?;
+        } else if self.modifier < 0 {
+            write!(f, " - {}", self.modifier.abs())?;
+        }
+
+        write!(f, " = {}", self.total())
     }
 }

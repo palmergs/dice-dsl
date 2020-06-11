@@ -28,7 +28,7 @@ pub fn chart(dice: &Dice, num: usize) {
     let mut map: BTreeMap<i64, usize> = BTreeMap::new(); 
     for _ in 0..num {
         let results = dice.roll();
-        let v = results.total;
+        let v = results.total();
         if v < min { min = v; }
         if v > max { max = v; }
         match map.get(&v) {
