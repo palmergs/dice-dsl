@@ -13,7 +13,7 @@ pub use result::{ Roll, Results };
 use std::i64::MAX;
 use std::collections::BTreeMap;
 
-pub fn dice(input: &String) -> Option<Dice> {
+pub fn dice(input: &str) -> Option<Dice> {
     let tokens = tokens(input);
     match Dice::build(&tokens, 0) {
         Some((dice, _)) => Some(dice),
@@ -57,5 +57,17 @@ pub fn chart(dice: &Dice, num: usize) {
                 println!("{:>3}. {:>5.*}:", k, 1, 0.0);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn build_dice() {
+        let roller = dice(&"4d4+4").unwrap();
+        let results = roller.roll();
+        assert!(results.total() >= 8);
     }
 }
