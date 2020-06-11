@@ -80,7 +80,6 @@ impl Dice {
             vec.push(Roll::new(self.range, 0));
         }
 
-        let total: i64 = vec.iter().map(|r| r.total).sum();
         let mut results = Results{ rolls: vec, modifier: self.modifier };
         for op in self.ops.iter() {
             op.apply(&mut results);
