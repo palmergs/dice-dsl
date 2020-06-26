@@ -1,6 +1,6 @@
 use std::fmt;
 
-use super::{ Dice, Roll, Token, Results };
+use super::{ Roll, Token, Results };
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum RollOp {
