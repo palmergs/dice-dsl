@@ -1,13 +1,14 @@
 Parser Notation:
 
-<result>        ::= <scalar> | <result> <scalar_op>
-<scalar>        ::= <vector> | <scalar> <vector_op> 
+<result_gen>    ::= <scalar> | <result> <scalar_op>
+<scalar_gen>    ::= <vector> | <scalar> <vector_op> 
 <vector>        ::= <value> | <vector> , <value>
 <value>         ::= <seq> | <value> <mod> <num>
 <seq>           ::= <roll> | <seq> <roll_op>
-<roll>          ::= [dD]<num> | <num> <roll> 
+<roll>          ::= [dD]<range> | <num> <roll> 
 <mod>           ::= + | - 
-<num>           ::= [1-9][0-9]* | %+
+<num>           ::= [1-9][0-9]*
+<range>         ::= <num> | %+
 <roll_op>       ::= ! | !! | 
                     * | ** | 
                     ++ | -- | 
