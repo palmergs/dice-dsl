@@ -337,6 +337,7 @@ impl fmt::Display for RollOp {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::super::Dice;
 
     #[test]
     fn build_op() {
