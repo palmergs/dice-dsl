@@ -7,6 +7,7 @@ use nom::{
     bytes::complete::tag,
     sequence::{delimited, tuple, preceded},
     character::complete::{char, digit0, digit1},
+    combinator::opt,
 };
 
 const RADIX: u32 = 10;
@@ -231,19 +232,46 @@ fn range(input: &str) -> IResult<&str, i32> {
 }
 
 struct Roller {
-    count: u32,
+    count: i32,
     range: i32,
     op: Option<RollOp>,
-    op_val: Option<i32>,
 }
 
 fn roller(input: &str) -> IResult<&str, Roller> {
-    Ok((input, Roller{ count: 1, range: 6, op: None, op_val: None }))
+    match tuple((
+            opt(digit1),
+            alt((char('d'), char('D'))),
+            range,
+            opt(roll_op)
+        ))(input) {
+
+        Ok((input, (count, _, range, op))) => {
+            let count = match count {
+                Some(n) => n.parse::<i32>().unwrap(),
+                None => 1,
+            };
+
+            Ok((input, Roller{ count, range, op }))
+        }
+        Err(e) => Err(e)
+    }
 }
 
 enum Val {
-    Num(i32),
-    Roller,
+    Constant(i32),
+    Random(Roller),
+}
+
+fn val(input: &str) -> IResult<&str, Val> {
+    match opt(roller)(input) {
+        Ok((input, Some(roller))) => Ok((input, Val::Random(roller))),
+        Ok((input, None)) => {
+            match(digit1(input)) {
+                Ok((input, chars)) => Ok((input, Val::Constant(chars.parse::<i32>().unwrap()))),
+                Err(e) => Err(e),
+            }
+        }
+    }
 }
 
 enum ModOp {
@@ -262,7 +290,7 @@ struct Expr {
 }
 
 fn expr(input: &str) -> IResult<&str, Expr> {
-    Ok((input, Expr{ first: Val::Num(3), rest: vec![] }))
+    Ok((input, Expr{ first: Val::Constant(3), rest: vec![] }))
 }
 
 struct Scalar {
