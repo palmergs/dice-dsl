@@ -13,3 +13,4 @@ path = "src/bin/main.rs"
 [dependencies]
 rand = "0.7.3"
 clap = "*"
+nom = "*"

@@ -1,23 +1,32 @@
 Parser Notation:
 
-<result_gen>    ::= <scalar> | <result> <scalar_op>
-<scalar_gen>    ::= <vector> | <scalar> <vector_op> 
-<vector>        ::= <value> | <vector> , <value>
-<value>         ::= <seq> | <value> <mod> <num>
-<seq>           ::= <roll> | <seq> <roll_op>
-<roll>          ::= [dD]<range> | <num> <roll> 
+<result>        ::= <scalar> | <result> <result_cmp>
+<vector>        ::= <scalar> | <vector> , <scalar>
+<scalar>        ::= <sum> | <sum> <sum_cmp> 
+<sum>           ::= <seq> | <value> <mod> <num>
+<roller>        ::= <dice> | <dice> <roll_op>
+<dice>          ::= N? [dD]<range>  
 <mod>           ::= + | - 
-<num>           ::= [1-9][0-9]*
-<range>         ::= <num> | %+
-<roll_op>       ::= ! | !! | 
-                    * | ** | 
-                    ++ | -- | 
-                    ~ | ` | ^ | 
-                    DIS | ADV | 
-                    <roll_op> <num>
-<vector_op>     ::= = <num> | > <num> | < <num> | 
-                    [ <num> ] | ( <num> ) | { <num> } | { <num> , <num> }
-<scalar_op>     ::= >> <num> | << <num> | == <num> | Y | / <num> | * <num>
+<range>         ::= [1-9][0-9]? | %+  # % = 100, %% = 1000, %%% = 10000
+<roll_op>       ::= ! N?    # roll all again if every R >= N (N default == <range>)
+                    !! N?   # roll all again if every R >= N, keep rolling so long as this is true
+                    * N?    # for each R >= N roll again (<num> default is <range>)
+                    ** N?   # for each R >= N roll again, keep rolling so long as this is true
+                    ++ N?   # add N to each R (default 1)
+                    -- N?   # subtract N from R (default 1)
+                    ~ N     # keep only middle N rolls, round towards high (4d6~3 => 1,2,3,4 => 2,3,4)
+                    ` N     # keep only low N rolls
+                    ^ N     # keep only high N rolls
+                    DIS     # roll twice keeping rolls with the lower sum
+                    ADV     # roll twice keeping rolls with the higher sum
+                    Y       # return each  in the largest group that matches (5d6 => 2,2,4,4,5 => 4,4)
+<sum_cmp  >     ::= [ N ]   # return (<sum> - N) + 1 if <sum> >= N
+                    ( N )   # return (N - <sum>) + 1 if <sum> <= N
+                    { N }   # return (<sum> % N) if <sum> >= N
+                    { N1 , N2 } # return (<sum> % N1) + (<sum> - N) % N2) if <sum> >= N1 (3d6{3,2} => 12 => 5)
+<result_cmp>    ::= > N     # return each <scalar> greater than num
+                    < N     # return each <scalar> less than num
+                    = N     # return each <scalar> equal to num
 
 
 

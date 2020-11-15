@@ -1,4 +1,106 @@
+extern crate nom;
+
+use nom::{
+    IResult,    
+};
+
 const RADIX: u32 = 10;
+
+enum ResultCmp {
+    GE(i32),
+    LE(i32),
+    EQ(i32),
+}
+
+fn result_cmp(input: &str) -> IResult<&str, ResultCmp> {
+    Ok((input, ResultCmp::GE(0)))
+}
+
+enum SumCmp {
+    TargetHigh(i32),
+    TargetLow(i32),
+    TargetSucc(i32),
+    TargetSuccNext(i32, i32),
+}
+
+fn sum_cmp(input: &str) -> IResult<&str, SumCmp> {
+    Ok((input, SumCmp::TargetHigh(0)))
+}
+
+enum RollOp {
+    Explode(i32),
+    ExplodeUntil(i32),
+    ExplodeEach(i32),
+    ExplodeEachUntil(i32),
+    AddEach(i32),
+    SubEach(i32),
+    TakeMid(i32),
+    TakeLow(i32),
+    TakeHigh(i32),
+    Disadvantage,
+    Advantage,
+    BestGroup,
+}
+
+fn roll_op(input: &str) -> IResult<&str, RollOp> {
+    Ok((input, RollOp::AddEach(0)))   
+}
+
+fn range(input: &str) -> IResult<&str, i32> {
+    Ok((input, 6))
+}
+
+struct Roller {
+    count: u32,
+    range: i32,
+    op: Option<RollOp>,
+    op_val: Option<i32>,
+}
+
+fn roller(input: &str) -> IResult<&str, Roller> {
+    Ok((input, Roller{ count: 1, range: 6, op: None, op_val: None }))
+}
+
+enum Val {
+    Num(i32),
+    Roller,
+}
+
+enum ModOp {
+    Add,
+    Sub,
+}
+
+struct ModVal {
+    op: ModOp,
+    val: Val,
+}
+
+struct Expr {
+    first: Val,
+    rest: Vec<Val>,
+}
+
+fn expr(input: &str) -> IResult<&str, Expr> {
+    Ok((input, Expr{ first: Val::Num(3), rest: vec![] }))
+}
+
+struct Scalar {
+    expr: Expr,
+    op: Option<SumCmp>,
+}
+
+// fn scalar(input: &str) -> IResult<&str, Expr> { }
+
+struct Generator {
+    scalars: Vec<Scalar>,
+    op: Option<ResultCmp>,
+}
+
+fn generator(input: &str) -> IResult<&str, Generator> {
+    Ok((input, Generator{ scalars: vec![], op: None }))
+}
+
 
 // Parser Notation:
 
