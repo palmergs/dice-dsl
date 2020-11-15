@@ -1,19 +1,45 @@
 extern crate nom;
 
 use nom::{
-    IResult,    
+    IResult, 
+    branch::alt,
+    multi::many1_count,
+    bytes::complete::tag,
+    sequence::{delimited, tuple, preceded},
+    character::complete::{char, digit0, digit1},
 };
 
 const RADIX: u32 = 10;
 
 enum ResultCmp {
-    GE(i32),
-    LE(i32),
+    GT(i32),
+    LT(i32),
     EQ(i32),
 }
 
+fn result_gt(input: &str) -> IResult<&str, ResultCmp> {
+    match preceded(char('>'), digit1)(input) {
+        Ok((input, chars)) => Ok((input, ResultCmp::GT(chars.parse::<i32>().unwrap()))),
+        Err(e) => Err(e),
+    }
+}
+
+fn result_lt(input: &str) -> IResult<&str, ResultCmp> {
+    match preceded(char('<'), digit1)(input) {
+        Ok((input, chars)) => Ok((input, ResultCmp::LT(chars.parse::<i32>().unwrap()))),
+        Err(e) => Err(e),
+    }
+}
+
+fn result_eq(input: &str) -> IResult<&str, ResultCmp> {
+    match preceded(char('='), digit1)(input) {
+        Ok((input, chars)) => Ok((input, ResultCmp::EQ(chars.parse::<i32>().unwrap()))),
+        Err(e) => Err(e),
+    }
+}
+
 fn result_cmp(input: &str) -> IResult<&str, ResultCmp> {
-    Ok((input, ResultCmp::GE(0)))
+    alt((result_gt, result_lt, result_eq))(input)
 }
 
 enum SumCmp {
@@ -23,17 +49,51 @@ enum SumCmp {
     TargetSuccNext(i32, i32),
 }
 
+fn target_high(input: &str) -> IResult<&str, SumCmp> {
+    match delimited(char('['), digit1, char(']'))(input) {
+        Ok((input, chars)) => Ok((input, SumCmp::TargetHigh(chars.parse::<i32>().unwrap()))),
+        Err(e) => Err(e),
+    }
+}
+
+fn target_low(input: &str) -> IResult<&str, SumCmp> {
+    match delimited(char('('), digit1, char(')'))(input) {
+        Ok((input, chars)) => Ok((input, SumCmp::TargetLow(chars.parse::<i32>().unwrap()))),
+        Err(e) => Err(e),
+    }
+}
+
+fn target_succ(input: &str) -> IResult<&str, SumCmp> {
+    match delimited(char('{'), digit1, char('}'))(input) {
+        Ok((input, chars)) => Ok((input, SumCmp::TargetSucc(chars.parse::<i32>().unwrap()))),
+        Err(e) => Err(e),
+    }
+}
+
+fn target_succ_next(input: &str) -> IResult<&str, SumCmp> {
+    match delimited(char('{'), tuple((digit1, digit1)), char('}'))(input) {
+        Ok((input, (chars1, chars2))) => Ok((
+            input, 
+            SumCmp::TargetSuccNext(
+                chars1.parse::<i32>().unwrap(), 
+                chars2.parse::<i32>().unwrap()
+            )
+        )),
+        Err(e) => Err(e),
+    }
+}
+
 fn sum_cmp(input: &str) -> IResult<&str, SumCmp> {
-    Ok((input, SumCmp::TargetHigh(0)))
+    alt((target_high, target_low, target_succ, target_succ_next))(input)
 }
 
 enum RollOp {
-    Explode(i32),
-    ExplodeUntil(i32),
-    ExplodeEach(i32),
-    ExplodeEachUntil(i32),
-    AddEach(i32),
-    SubEach(i32),
+    Explode(Option<i32>),
+    ExplodeUntil(Option<i32>),
+    ExplodeEach(Option<i32>),
+    ExplodeEachUntil(Option<i32>),
+    AddEach(Option<i32>),
+    SubEach(Option<i32>),
     TakeMid(i32),
     TakeLow(i32),
     TakeHigh(i32),
@@ -42,12 +102,132 @@ enum RollOp {
     BestGroup,
 }
 
+fn option_i32(input: &str) -> Option<i32> {
+    if input.len() == 0 { return None; }
+
+    Some(input.parse::<i32>().unwrap())
+}
+
+fn explode_op(input: &str) -> IResult<&str, RollOp> {
+    match preceded(char('!'), digit0)(input) {
+        Ok((input, chars)) => Ok((input, RollOp::Explode(option_i32(chars)))),
+        Err(e) => Err(e)
+    }
+}
+
+fn explode_until_op(input: &str) -> IResult<&str, RollOp> {
+    match preceded(tag("!!"), digit0)(input) {
+        Ok((input, chars)) => Ok((input, RollOp::ExplodeUntil(option_i32(chars)))),
+        Err(e) => Err(e)
+    }
+}
+
+fn explode_each_op(input: &str) -> IResult<&str, RollOp> {
+    match preceded(char('*'), digit0)(input) {
+        Ok((input, chars)) => Ok((input, RollOp::Explode(option_i32(chars)))),
+        Err(e) => Err(e)
+    }
+}
+
+fn explode_each_until_op(input: &str) -> IResult<&str, RollOp> {
+    match preceded(tag("**"), digit0)(input) {
+        Ok((input, chars)) => Ok((input, RollOp::ExplodeEachUntil(option_i32(chars)))),
+        Err(e) => Err(e)
+    }
+}
+
+fn add_each_op(input: &str) -> IResult<&str, RollOp> {
+    match preceded(tag("++"), digit0)(input) {
+        Ok((input, chars)) => Ok((input, RollOp::AddEach(option_i32(chars)))),
+        Err(e) => Err(e)
+    }
+}
+
+fn sub_each_op(input: &str) -> IResult<&str, RollOp> {
+    match preceded(tag("--"), digit0)(input) {
+        Ok((input, chars)) => Ok((input, RollOp::SubEach(option_i32(chars)))),
+        Err(e) => Err(e)
+    }
+}
+
+fn take_mid_op(input: &str) -> IResult<&str, RollOp> {
+    match preceded(char('~'), digit1)(input) {
+        Ok((input, chars)) => Ok((input, RollOp::TakeMid(chars.parse::<i32>().unwrap()))),
+        Err(e) => Err(e)
+    }
+}
+
+fn take_low_op(input: &str) -> IResult<&str, RollOp> {
+    match preceded(char('`'), digit1)(input) {
+        Ok((input, chars)) => Ok((input, RollOp::TakeLow(chars.parse::<i32>().unwrap()))),
+        Err(e) => Err(e)
+    }
+}
+
+fn take_high_op(input: &str) -> IResult<&str, RollOp> {
+    match preceded(char('^'), digit1)(input) {
+        Ok((input, chars)) => Ok((input, RollOp::TakeHigh(chars.parse::<i32>().unwrap()))),
+        Err(e) => Err(e)
+    }
+}
+
+fn disadvantage_op(input: &str) -> IResult<&str, RollOp> {
+    match tag("DIS")(input) {
+        Ok((input, _)) => Ok((input, RollOp::Disadvantage)),
+        Err(e) => Err(e)
+    }
+}
+
+fn advantage_op(input: &str) -> IResult<&str, RollOp> {
+    match tag("ADV")(input) {
+        Ok((input, _)) => Ok((input, RollOp::Advantage)),
+        Err(e) => Err(e)
+    }
+}
+
+fn best_group_op(input: &str) -> IResult<&str, RollOp> {
+    match char('$')(input) {
+        Ok((input, _)) => Ok((input, RollOp::BestGroup)),
+        Err(e) => Err(e)
+    }
+}
+
 fn roll_op(input: &str) -> IResult<&str, RollOp> {
-    Ok((input, RollOp::AddEach(0)))   
+    alt((
+        explode_until_op, 
+        explode_op, 
+        explode_each_until_op,
+        explode_each_op, 
+        add_each_op,
+        sub_each_op,
+        take_mid_op,
+        take_low_op,
+        take_high_op,
+        disadvantage_op,
+        advantage_op,
+        best_group_op
+    ))(input)
+}
+
+fn percent(input: &str) -> IResult<&str, &str> {
+    match many1_count(char('%'))(input) {
+        Ok((input, n)) => {
+            match n {
+                1 => Ok((input, "100")),
+                2 => Ok((input, "1000")),
+                3 => Ok((input, "10000")),
+                _ => Ok((input, "100000")),
+            }
+        },
+        Err(e) => Err(e)
+    }
 }
 
 fn range(input: &str) -> IResult<&str, i32> {
-    Ok((input, 6))
+    match alt((digit1, percent))(input) {
+        Ok((input, chars)) => Ok((input, chars.parse::<i32>().unwrap())),
+        Err(e) => Err(e)
+    }
 }
 
 struct Roller {

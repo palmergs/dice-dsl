@@ -3,11 +3,9 @@ Parser Notation:
 <result>        ::= <scalar> | <result> <result_cmp>
 <vector>        ::= <scalar> | <vector> , <scalar>
 <scalar>        ::= <sum> | <sum> <sum_cmp> 
-<sum>           ::= <seq> | <value> <mod> <num>
-<roller>        ::= <dice> | <dice> <roll_op>
-<dice>          ::= N? [dD]<range>  
-<mod>           ::= + | - 
-<range>         ::= [1-9][0-9]? | %+  # % = 100, %% = 1000, %%% = 10000
+<expr>          ::= <value> | <expr> + <value> | <expr> - <value>
+<value>         ::= N | <roll>
+<roll>          ::= [1-9][0-9]? | %+  # % = 100, %% = 1000, %%% = 10000
 <roll_op>       ::= ! N?    # roll all again if every R >= N (N default == <range>)
                     !! N?   # roll all again if every R >= N, keep rolling so long as this is true
                     * N?    # for each R >= N roll again (<num> default is <range>)
