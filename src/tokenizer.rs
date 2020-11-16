@@ -1,5 +1,7 @@
 extern crate nom;
 
+use std::fmt;
+
 use nom::{
     IResult, 
     branch::alt,
@@ -12,10 +14,21 @@ use nom::{
 
 const RADIX: u32 = 10;
 
+#[derive(Debug, Copy, Clone, PartialEq)]
 enum ResultCmp {
     GT(i32),
     LT(i32),
     EQ(i32),
+}
+
+impl fmt::Display for ResultCmp {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ResultCmp::GT(n) => write!(f, " > {}", n),
+            ResultCmp::LT(n) => write!(f, " < {}", n),
+            ResultCmp::EQ(n) => write!(f, " = {}", n),
+        }
+    }
 }
 
 fn result_gt(input: &str) -> IResult<&str, ResultCmp> {
@@ -43,11 +56,23 @@ fn result_cmp(input: &str) -> IResult<&str, ResultCmp> {
     alt((result_gt, result_lt, result_eq))(input)
 }
 
+#[derive(Debug, Copy, Clone, PartialEq)]
 enum SumCmp {
     TargetHigh(i32),
     TargetLow(i32),
     TargetSucc(i32),
     TargetSuccNext(i32, i32),
+}
+
+impl fmt::Display for SumCmp {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            SumCmp::TargetHigh(n) => write!(f, "[{}]", n),
+            SumCmp::TargetLow(n) => write!(f, "({})", n),
+            SumCmp::TargetSucc(n) => write!(f, "{{{}}}", n),
+            SumCmp::TargetSuccNext(n, m) => write!(f, "{{{}, {}}}", n, m),
+        }
+    }
 }
 
 fn target_high(input: &str) -> IResult<&str, SumCmp> {
@@ -88,6 +113,7 @@ fn sum_cmp(input: &str) -> IResult<&str, SumCmp> {
     alt((target_high, target_low, target_succ, target_succ_next))(input)
 }
 
+#[derive(Debug, Copy, Clone, PartialEq)]
 enum RollOp {
     Explode(Option<i32>),
     ExplodeUntil(Option<i32>),
@@ -101,6 +127,55 @@ enum RollOp {
     Disadvantage,
     Advantage,
     BestGroup,
+}
+
+impl fmt::Display for RollOp {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            RollOp::Explode(opt) => {
+                match opt {
+                    Some(n) => write!(f, "!{}", n),
+                    None => write!(f, "!"),
+                }
+            }
+            RollOp::ExplodeUntil(opt) => {
+                match opt {
+                    Some(n) => write!(f, "!!{}", n),
+                    None => write!(f, "!!"),
+                }
+            }
+            RollOp::ExplodeEach(opt) => {
+                match opt {
+                    Some(n) => write!(f, "*{}", n),
+                    None => write!(f, "*"),
+                }
+            }
+            RollOp::ExplodeEachUntil(opt) => {
+                match opt {
+                    Some(n) => write!(f, "**{}", n),
+                    None => write!(f, "**"),
+                }
+            }
+            RollOp::AddEach(opt) => {
+                match opt {
+                    Some(n) => write!(f, "++{}", n),
+                    None => write!(f, "++"),
+                }
+            }
+            RollOp::SubEach(opt) => {
+                match opt {
+                    Some(n) => write!(f, "--{}", n),
+                    None => write!(f, "--"),
+                }
+            }
+            RollOp::TakeMid(n) => write!(f, "~{}", n),
+            RollOp::TakeLow(n) => write!(f, "`{}", n),
+            RollOp::TakeHigh(n) => write!(f, "^{}", n),
+            RollOp::Disadvantage => write!(f, " DIS"),
+            RollOp::Advantage => write!(f, " ADV"),
+            RollOp::BestGroup => write!(f, "Y"),
+        } 
+    }
 }
 
 fn option_i32(input: &str) -> Option<i32> {
@@ -231,10 +306,20 @@ fn range(input: &str) -> IResult<&str, i32> {
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq)]
 struct Roller {
     count: i32,
     range: i32,
     op: Option<RollOp>,
+}
+
+impl fmt::Display for Roller {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match &self.op {
+            Some(op) => write!(f, "{}d{}{}", self.count, self.range, op),
+            None => write!(f, "{}d{}", self.count, self.range),
+        }
+    }
 }
 
 fn roller(input: &str) -> IResult<&str, Roller> {
@@ -257,9 +342,19 @@ fn roller(input: &str) -> IResult<&str, Roller> {
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq)]
 enum Val {
     Constant(i32),
     Random(Roller),
+}
+
+impl fmt::Display for Val {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Val::Constant(n) => write!(f, "{}", n),
+            Val::Random(r) => write!(f, "{}", r),
+        }
+    }
 }
 
 fn val(input: &str) -> IResult<&str, Val> {
@@ -275,19 +370,46 @@ fn val(input: &str) -> IResult<&str, Val> {
     }
 }
 
+#[derive(Debug, Clone)]
 struct Expr {
     val: Val,
     mod_val: Option<ModVal>,
 }
 
+impl fmt::Display for Expr {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match &self.mod_val {
+            Some(mod_val) => write!(f, "{}{}", self.val, mod_val),
+            None => write!(f, "{}", self.val),
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq)]
 enum ModOp {
     Add,
     Sub,
 }
 
+impl fmt::Display for ModOp {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ModOp::Add => write!(f, " + "),
+            ModOp::Sub => write!(f, " - "),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 struct ModVal {
     op: ModOp,
     val: Box<Expr>,
+}
+
+impl fmt::Display for ModVal {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}{}", self.op, *self.val)   
+    }
 }
 
 fn mod_val(input: &str) -> IResult<&str, ModVal> {
@@ -310,9 +432,19 @@ fn expr(input: &str) -> IResult<&str, Expr> {
     }
 }
 
+#[derive(Debug, Clone)]
 struct Scalar {
     expr: Expr,
     op: Option<SumCmp>,
+}
+
+impl fmt::Display for Scalar {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self.op {
+            Some(op) => write!(f, "{}{}", self.expr, op),
+            None => write!(f, "{}", self.expr),
+        }
+    }
 }
 
 fn scalar(input: &str) -> IResult<&str, Scalar> {
@@ -322,12 +454,33 @@ fn scalar(input: &str) -> IResult<&str, Scalar> {
     }
 }
 
-struct Generator {
+#[derive(Debug, Clone)]
+pub struct Generator {
     scalars: Vec<Scalar>,
     op: Option<ResultCmp>,
 }
 
-fn generator(input: &str) -> IResult<&str, Generator> {
+impl fmt::Display for Generator {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut first = true;
+        for s in &self.scalars {
+            match first {
+                true => {
+                    write!(f, "{}", s)?;
+                    first = false;
+                },
+                false => write!(f, ", {}", s)?
+            }
+        }
+
+        match self.op {
+            Some(op) => write!(f, "{}", op),
+            None => write!(f, ""),
+        }
+    }
+}
+
+pub fn generator(input: &str) -> IResult<&str, Generator> {
     match tuple((separated_list1(char(','), scalar), opt(result_cmp)))(input) {
         Ok((input, (scalars, op))) => Ok((input, Generator{ scalars, op })),
         Err(e) => Err(e),
