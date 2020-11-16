@@ -266,12 +266,18 @@ fn val(input: &str) -> IResult<&str, Val> {
     match opt(roller)(input) {
         Ok((input, Some(roller))) => Ok((input, Val::Random(roller))),
         Ok((input, None)) => {
-            match(digit1(input)) {
+            match digit1(input) {
                 Ok((input, chars)) => Ok((input, Val::Constant(chars.parse::<i32>().unwrap()))),
                 Err(e) => Err(e),
             }
-        }
+        },
+        Err(e) => Err(e),
     }
+}
+
+struct Expr {
+    val: Val,
+    mod_val: Option<ModVal>,
 }
 
 enum ModOp {
@@ -281,16 +287,20 @@ enum ModOp {
 
 struct ModVal {
     op: ModOp,
-    val: Val,
+    val: Box<Expr>,
 }
 
-struct Expr {
-    first: Val,
-    rest: Vec<Val>,
-}
-
-fn expr(input: &str) -> IResult<&str, Expr> {
-    Ok((input, Expr{ first: Val::Constant(3), rest: vec![] }))
+fn mod_val(input: &str) -> IResult<&str, ModVal> {
+    match tuple((alt((char('+'), char('-'))), val))(input) {
+        Ok((input, (ch, val))) => {
+            match ch {
+                '+' => Ok((input, ModVal{ op: ModOp::Add, val: Box::new(Expr{ val, mod_val: None }) })),
+                '-' => Ok((input, ModVal{ op: ModOp::Sub, val: Box::new(Expr{ val, mod_val: None }) })),
+                _ => panic!("not a valid operator for mod val")
+            }
+        },
+        Err(e) => Err(e)
+    }
 }
 
 struct Scalar {
@@ -298,15 +308,9 @@ struct Scalar {
     op: Option<SumCmp>,
 }
 
-// fn scalar(input: &str) -> IResult<&str, Expr> { }
-
 struct Generator {
     scalars: Vec<Scalar>,
     op: Option<ResultCmp>,
-}
-
-fn generator(input: &str) -> IResult<&str, Generator> {
-    Ok((input, Generator{ scalars: vec![], op: None }))
 }
 
 
