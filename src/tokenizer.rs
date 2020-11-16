@@ -3,7 +3,7 @@ extern crate nom;
 use nom::{
     IResult, 
     branch::alt,
-    multi::many1_count,
+    multi::{many1_count, separated_list1},
     bytes::complete::tag,
     sequence::{delimited, tuple, preceded},
     character::complete::{char, digit0, digit1},
@@ -303,14 +303,35 @@ fn mod_val(input: &str) -> IResult<&str, ModVal> {
     }
 }
 
+fn expr(input: &str) -> IResult<&str, Expr> {
+    match tuple((val, opt(mod_val)))(input) {
+        Ok((input, (val, mod_val))) => Ok((input, Expr{ val, mod_val })),
+        Err(e) => Err(e),
+    }
+}
+
 struct Scalar {
     expr: Expr,
     op: Option<SumCmp>,
 }
 
+fn scalar(input: &str) -> IResult<&str, Scalar> {
+    match tuple((expr, opt(sum_cmp)))(input) {
+        Ok((input, (expr, op))) => Ok((input, Scalar{ expr, op })),
+        Err(e) => Err(e),
+    }
+}
+
 struct Generator {
     scalars: Vec<Scalar>,
     op: Option<ResultCmp>,
+}
+
+fn generator(input: &str) -> IResult<&str, Generator> {
+    match tuple((separated_list1(char(','), scalar), opt(result_cmp)))(input) {
+        Ok((input, (scalars, op))) => Ok((input, Generator{ scalars, op })),
+        Err(e) => Err(e),
+    }
 }
 
 
